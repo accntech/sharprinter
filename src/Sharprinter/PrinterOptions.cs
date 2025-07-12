@@ -13,7 +13,7 @@ public sealed class PrinterOptions
     /// <summary>
     ///     Gets or sets the name of the communication port to connect to the printer.
     /// </summary>
-    public string PortName { get; set; }
+    public string PortName { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the baud rate for serial communication with the printer.
