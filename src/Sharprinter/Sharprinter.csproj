@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <Version>0.0.1</Version>
+        <FileVersion>0.0.1</FileVersion>
+        <AssemblyVersion>0.0.1</AssemblyVersion>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <Platforms>AnyCPU;x64</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageDescription>Thermal printer SDK wrapper for windows written in C#.</PackageDescription>
+        <PackageTags>printer; thermal; pos</PackageTags>
+        <PackageProjectUrl>https://github.com/accntech/sharprinter.git</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/accntech/sharprinter.git</RepositoryUrl>
+        <Authors>accntech</Authors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\netstandard2.1\printer.sdk.dll">
+            <Link>printer.sdk.dll</Link>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+</Project>
