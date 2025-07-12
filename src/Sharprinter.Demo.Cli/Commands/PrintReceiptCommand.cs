@@ -16,15 +16,13 @@ public class PrintReceiptCommand : AsyncCommand<PrintSettings>
             CutPaper = settings.CutPaper ?? false
         };
 
-        var ctx = new PrinterContext(options);
+        var printer = new PrinterContext(options);
 
-        ctx.TextLine("INVOICE", true, Alignment.Center, 1);
-        ctx.FeedLine();
-
-        ctx.TextLine("Sharprinter Demo Receipt", true);
-        ctx.FeedLine(2);
-
-        await ctx.ExecuteAsync();
+        await printer
+            .TextLine("Welcome to our store!", false, Alignment.Center, 1)
+            .TextLine("Thank you for your purchase!", true)
+            .FeedLine(3)
+            .ExecuteAsync();
 
         return 0;
     }
