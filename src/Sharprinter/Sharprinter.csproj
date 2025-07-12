@@ -22,6 +22,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MinVer" Version="6.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\netstandard2.1\printer.sdk.dll">
             <Link>printer.sdk.dll</Link>
         </None>
