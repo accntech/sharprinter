@@ -5,7 +5,7 @@ namespace Sharprinter.Demo.Cli.Settings;
 
 public class PrintSettings : CommandSettings
 {
-    [CommandArgument(0, "[PORT]")]
+    [CommandOption("-p|--port <PORT>")]
     [Description("Serial port to connect to, e.g., COM1")]
     public string Port { get; set; } = string.Empty;
 
