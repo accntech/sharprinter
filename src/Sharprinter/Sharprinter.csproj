@@ -7,7 +7,7 @@
         <AssemblyVersion>0.0.1</AssemblyVersion>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
-        <Platforms>AnyCPU;x64</Platforms>
+        <Platforms>AnyCPU;x86;x64</Platforms>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -26,7 +26,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
         <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="runtimes\win-x64\native\">
+            <Link>printer.sdk.dll</Link>
+        </None>
+        
+        <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="runtimes\win-x86\native\">
             <Link>printer.sdk.dll</Link>
         </None>
     </ItemGroup>
