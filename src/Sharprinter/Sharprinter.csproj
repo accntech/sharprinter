@@ -1,24 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <GenerateDocumentationFile>True</GenerateDocumentationFile>
-        <Version>0.0.1</Version>
-        <FileVersion>0.0.1</FileVersion>
         <AssemblyVersion>0.0.1</AssemblyVersion>
-        <Nullable>enable</Nullable>
+        <FileVersion>0.0.1</FileVersion>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
         <Platforms>AnyCPU;x86;x64</Platforms>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Version>0.0.1</Version>
     </PropertyGroup>
 
     <PropertyGroup>
-        <IsPackable>true</IsPackable>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageDescription>Thermal printer SDK wrapper for windows written in C#.</PackageDescription>
-        <PackageTags>printer; thermal; pos</PackageTags>
-        <PackageProjectUrl>https://github.com/accntech/sharprinter.git</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/accntech/sharprinter.git</RepositoryUrl>
         <Authors>accntech</Authors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsPackable>true</IsPackable>
+        <PackageDescription>Thermal printer SDK wrapper for windows written in C#.</PackageDescription>
+        <PackageProjectUrl>https://github.com/accntech/sharprinter.git</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>printer; thermal; pos</PackageTags>
+        <RepositoryUrl>https://github.com/accntech/sharprinter.git</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
