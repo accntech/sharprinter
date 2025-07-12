@@ -1,4 +1,6 @@
-﻿namespace Sharprinter;
+﻿// ReSharper disable once CheckNamespace
+namespace Sharprinter;
+
 
 /// <summary>
 ///     Represents a data item for table rows with label, maximum length, alignment, and text wrap properties.

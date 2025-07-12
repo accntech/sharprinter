@@ -1,4 +1,5 @@
-﻿namespace Sharprinter;
+﻿// ReSharper disable once CheckNamespace
+namespace Sharprinter;
 
 /// <summary>
 ///     Defines the alignment options for text and table content.

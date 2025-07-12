@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace Sharprinter;
 
 /// <summary>
@@ -67,14 +68,8 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
 
     public ITable AddHeader(HeaderItem[] headers)
     {
-        var result = 0;
-
         //print top border
-        _printActions.Add(() =>
-        {
-            result = Printer.PrintText(context.Device, string.Empty.PadLeft(maxCharCount, '-') + "\n\r", 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table header. Error code: {result}");
-        });
+        _printActions.Add(() => context.Printer.PrintText(string.Empty.PadLeft(maxCharCount, '-') + "\n\r", 0, 0));
 
         //print header
         _printActions.Add(() =>
@@ -94,16 +89,11 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
                 };
             });
 
-            result = Printer.PrintText(context.Device, header + "\n\r", 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table header. Error code: {result}");
+            context.Printer.PrintText(header + "\n\r", 0, 0);
         });
 
         //print bottom border
-        _printActions.Add(() =>
-        {
-            result = Printer.PrintText(context.Device, string.Empty.PadLeft(maxCharCount, '-') + "\n\r", 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table header. Error code: {result}");
-        });
+        _printActions.Add(() => context.Printer.PrintText(string.Empty.PadLeft(maxCharCount, '-') + "\n\r", 0, 0));
 
         return this;
     }
@@ -130,8 +120,7 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
                 };
             }); //TODO: Add text wrap
 
-            var result = Printer.PrintText(context.Device, line, 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table line. Error code: {result}");
+            context.Printer.PrintText(line, 0, 0);
         });
 
         return this;
@@ -157,33 +146,19 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
 
     public ITable AddEmptyLine()
     {
-        _printActions.Add(() =>
-        {
-            var result = Printer.PrintText(context.Device, " \n\r", 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table line. Error code: {result}");
-        });
-
+        _printActions.Add(() => context.Printer.PrintText(" \n\r", 0, 0));
         return this;
     }
 
     public ITable AddRowSeparator()
     {
-        _printActions.Add(() =>
-        {
-            var result = Printer.PrintText(context.Device, string.Empty.PadLeft(maxCharCount, '-'), 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table line. Error code: {result}");
-        });
-
+        _printActions.Add(() => context.Printer.PrintText(string.Empty.PadLeft(maxCharCount, '-'), 0, 0));
         return this;
     }
 
     public PrinterContext Create()
     {
-        _printActions.Add(() =>
-        {
-            var result = Printer.PrintText(context.Device, string.Empty.PadLeft(maxCharCount, '-'), 0, 0);
-            if (result != 0) throw new Exception($"Failed to print table header. Error code: {result}");
-        });
+        _printActions.Add(() => context.Printer.PrintText(string.Empty.PadLeft(maxCharCount, '-'), 0, 0));
         context.AddTableActions(_printActions);
 
         return context;

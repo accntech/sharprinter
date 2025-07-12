@@ -1,4 +1,6 @@
-﻿namespace Sharprinter;
+﻿// ReSharper disable once CheckNamespace
+namespace Sharprinter;
+
 
 /// <summary>
 ///     Represents a header item for table columns with label, maximum length, and alignment properties.

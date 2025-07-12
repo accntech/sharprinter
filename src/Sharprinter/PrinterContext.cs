@@ -9,14 +9,21 @@ namespace Sharprinter;
 /// <summary>
 ///     Provides a context for building and executing print operations with method chaining support.
 /// </summary>
-public class PrinterContext(PrinterOptions options)
+public class PrinterContext
 {
-    /// <summary>
-    ///     Gets the internal printer device handle.
-    /// </summary>
-    internal IntPtr Device { get; private set; }
+    internal IPrinter Printer { get; }
 
     private readonly List<Action> _actions = [];
+    private readonly PrinterOptions _options;
+
+    /// <summary>
+    ///     Provides a context for building and executing print operations with method chaining support.
+    /// </summary>
+    public PrinterContext(PrinterOptions options)
+    {
+        _options = options;
+        Printer = new Printer();
+    }
 
     /// <summary>
     ///     Add action to print text
@@ -30,11 +37,7 @@ public class PrinterContext(PrinterOptions options)
     /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext Text(string text, Alignment alignment = Alignment.Left, int textSize = 0)
     {
-        _actions.Add(() =>
-        {
-            var result = Printer.PrintText(Device, text, (int)alignment, textSize);
-            if (result != 0) throw new Exception($"Failed to print text. Error code: {result}");
-        });
+        _actions.Add(() => Printer.PrintText(text, (int)alignment, textSize));
         return this;
     }
 
@@ -54,10 +57,8 @@ public class PrinterContext(PrinterOptions options)
     {
         _actions.Add(() =>
         {
-            if (textWrap) text = text.Wrap(options.MaxLineCharacter);
-
-            var result = Printer.PrintText(Device, $"{text}\n", (int)alignment, textSize);
-            if (result != 0) throw new Exception($"Failed to print text. Error code: {result}");
+            if (textWrap) text = text.Wrap(_options.MaxLineCharacter);
+            Printer.PrintText($"{text}\n", (int)alignment, textSize);
         });
         return this;
     }
@@ -70,7 +71,7 @@ public class PrinterContext(PrinterOptions options)
     /// </returns>
     public PrinterContext TextSeparator(char character = '-')
     {
-        var separator = new string(character, options.MaxLineCharacter);
+        var separator = new string(character, _options.MaxLineCharacter);
         return TextLine(separator, false);
     }
 
@@ -89,11 +90,7 @@ public class PrinterContext(PrinterOptions options)
             throw new ArgumentOutOfRangeException(nameof(lines), "Number of lines must be at least 1.");
         }
 
-        _actions.Add(() =>
-        {
-            var result = Printer.PrintText(Device, new string('\n', lines), 0, 0);
-            if (result != 0) throw new Exception($"Failed to feed line. Error code: {result}");
-        });
+        _actions.Add(() => Printer.PrintText(new string('\n', lines), 0, 0));
         return this;
     }
 
@@ -103,7 +100,7 @@ public class PrinterContext(PrinterOptions options)
     /// <returns>An <see cref="ITable" /> instance for building table content.</returns>
     public ITable Table()
     {
-        return new Table(this, options.MaxLineCharacter);
+        return new Table(this, _options.MaxLineCharacter);
     }
 
     /// <summary>
@@ -116,11 +113,7 @@ public class PrinterContext(PrinterOptions options)
     /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext Image(string path)
     {
-        _actions.Add(() =>
-        {
-            var result = Printer.PrintImage(Device, path, 0);
-            if (result != 0) throw new Exception($"Failed to print image. Error code: {result}");
-        });
+        _actions.Add(() => { Printer.PrintImage(path, 0); });
         return this;
     }
 
@@ -133,11 +126,7 @@ public class PrinterContext(PrinterOptions options)
     /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext BarCode(string barcode, Alignment alignment = Alignment.Left)
     {
-        _actions.Add(() =>
-        {
-            var result = Printer.PrintBarCode(Device, 73, barcode, 3, 100, (int)alignment, 2);
-            if (result != 0) throw new Exception("Failed to print barcode");
-        });
+        _actions.Add(() => Printer.PrintBarCode(73, barcode, 3, 100, (int)alignment, 2));
         return this;
     }
 
@@ -150,13 +139,10 @@ public class PrinterContext(PrinterOptions options)
     {
         return Task.Factory.StartNew(() =>
         {
-            Device = Printer.InitPrinter("");
-            var result = Printer.OpenPort(Device, $"{options.PortName}, {options.BaudRate}");
-
-            if (result != 0) return;
-
-            _ = Printer.OpenCashDrawer(Device, 0, 30, 255);
-            _ = Printer.ClosePort(Device);
+            Printer.Initialize();
+            Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
+            Printer.OpenCashDrawer(0, 30, 255);
+            Printer.ClosePort();
         }, cancellationToken);
     }
 
@@ -170,17 +156,15 @@ public class PrinterContext(PrinterOptions options)
     {
         return Task.Factory.StartNew(() =>
         {
-            Device = Printer.InitPrinter("");
-            var result = Printer.OpenPort(Device, $"{options.PortName}, {options.BaudRate}");
-
-            if (result != 0) return;
+            Printer.Initialize();
+            Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
 
             foreach (var action in _actions.TakeWhile(_ => !cancellationToken.IsCancellationRequested)) action();
 
-            if (options.CutPaper) _ = Printer.CutPaperWithDistance(Device, 66);
-            if (options.OpenDrawer) _ = Printer.OpenCashDrawer(Device, 0, 30, 255);
+            if (_options.CutPaper) Printer.CutPaperWithDistance(66);
+            if (_options.OpenDrawer) Printer.OpenCashDrawer(0, 30, 255);
 
-            _ = Printer.ClosePort(Device);
+            Printer.ClosePort();
         }, cancellationToken);
     }
 
