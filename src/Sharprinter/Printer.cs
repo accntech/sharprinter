@@ -9,7 +9,7 @@ namespace Sharprinter;
 /// </summary>
 internal class Printer : IPrinter
 {
-    private IntPtr _intPtr;
+    private IntPtr _intPtr = IntPtr.Zero;
 
     public void Initialize(string model = "")
     {
@@ -18,101 +18,51 @@ internal class Printer : IPrinter
 
     public void Release()
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.ReleasePrinter(_intPtr);
     }
 
     public void OpenPort(string port)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.OpenPort(_intPtr, port);
     }
 
     public void ClosePort()
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.ClosePort(_intPtr);
     }
 
     public void CutPaper(int cutMode)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.CutPaper(_intPtr, cutMode);
     }
 
     public void CutPaperWithDistance(int distance)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.CutPaperWithDistance(_intPtr, distance);
     }
 
     public void FeedLine(int lines)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.FeedLine(_intPtr, lines);
     }
 
     public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.OpenCashDrawer(_intPtr, pinMode, onTime, ofTime);
     }
 
     public void PrintText(string data, int alignment, int textSize)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.PrintText(_intPtr, data, alignment, textSize);
     }
 
     public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.PrintBarCode(_intPtr, type, data, width, height, alignment, position);
     }
 
     public void PrintImage(string filePath, int scaleMode)
     {
-        if (_intPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("Printer not initialized. Call Initialize() first.");
-        }
-
         Sdk.PrintImage(_intPtr, filePath, scaleMode);
     }
 
