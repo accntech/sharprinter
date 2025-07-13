@@ -5,28 +5,6 @@ namespace System;
 
 internal static class StringHelper
 {
-    public static string Wrap(this string text, int maxLineLength)
-    {
-        if (string.IsNullOrEmpty(text)) return text;
-
-        var lines = text.Replace("\r\n", "\n").Split('\n');
-        var wrappedLines = new List<string>();
-
-        foreach (var line in lines)
-        {
-            if (string.IsNullOrEmpty(line))
-            {
-                wrappedLines.Add(line);
-                continue;
-            }
-
-            var wrapped = line.SplitIntoLines(maxLineLength);
-            wrappedLines.AddRange(wrapped);
-        }
-
-        return string.Join("\n", wrappedLines);
-    }
-
     public static List<string> SplitIntoLines(this string input, int maxLineLength)
     {
         var result = new List<string>();
@@ -38,10 +16,8 @@ internal static class StringHelper
         {
             var word = words[i];
 
-            // If the word itself is longer than maxLineLength, split it
             while (word.Length > maxLineLength)
             {
-                // If there's space in the current line, fill it up first
                 if (line.Length > 0)
                 {
                     var spaceLeft = maxLineLength - line.Length - 1; // account for space
@@ -65,22 +41,15 @@ internal static class StringHelper
                 }
             }
 
-            // Now word.Length <= maxLineLength
             if (line.Length + word.Length + (line.Length > 0 ? 1 : 0) <= maxLineLength)
             {
-                if (line.Length > 0)
-                {
-                    line += " ";
-                }
+                if (line.Length > 0) line += " ";
 
                 line += word;
             }
             else
             {
-                if (line.Length > 0)
-                {
-                    result.Add(line);
-                }
+                if (line.Length > 0) result.Add(line);
 
                 line = word;
             }
@@ -88,10 +57,7 @@ internal static class StringHelper
             i++;
         }
 
-        if (line.Length > 0)
-        {
-            result.Add(line);
-        }
+        if (line.Length > 0) result.Add(line);
 
         return result;
     }
