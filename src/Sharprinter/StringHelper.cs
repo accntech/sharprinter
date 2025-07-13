@@ -33,8 +33,39 @@ internal static class StringHelper
         var words = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var line = "";
 
-        foreach (var word in words)
+        var i = 0;
+        while (i < words.Length)
         {
+            var word = words[i];
+
+            // If the word itself is longer than maxLineLength, split it
+            while (word.Length > maxLineLength)
+            {
+                // If there's space in the current line, fill it up first
+                if (line.Length > 0)
+                {
+                    var spaceLeft = maxLineLength - line.Length - 1; // account for space
+                    if (spaceLeft > 0)
+                    {
+                        line += " " + word[..spaceLeft];
+                        result.Add(line);
+                        word = word[spaceLeft..];
+                    }
+                    else
+                    {
+                        result.Add(line);
+                    }
+
+                    line = "";
+                }
+                else
+                {
+                    result.Add(word[..maxLineLength]);
+                    word = word[maxLineLength..];
+                }
+            }
+
+            // Now word.Length <= maxLineLength
             if (line.Length + word.Length + (line.Length > 0 ? 1 : 0) <= maxLineLength)
             {
                 if (line.Length > 0)
@@ -46,9 +77,15 @@ internal static class StringHelper
             }
             else
             {
-                result.Add(line);
+                if (line.Length > 0)
+                {
+                    result.Add(line);
+                }
+
                 line = word;
             }
+
+            i++;
         }
 
         if (line.Length > 0)
