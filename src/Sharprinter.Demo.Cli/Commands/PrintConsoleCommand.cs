@@ -3,7 +3,7 @@ using Spectre.Console.Cli;
 
 namespace Sharprinter.Demo.Cli.Commands;
 
-public class PrintReceiptCommand : AsyncCommand<PrintSettings>
+public class PrintConsoleCommand : AsyncCommand<PrintSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, PrintSettings settings)
     {
@@ -16,7 +16,7 @@ public class PrintReceiptCommand : AsyncCommand<PrintSettings>
             CutPaper = settings.CutPaper ?? false
         };
 
-        var printer = new PrinterContext(options);
+        var printer = new PrinterContext(new ConsolePrinter(options.MaxLineCharacter), options);
 
         await printer
             .TextLine("Welcome to our store!", false, Alignment.Center, 1)

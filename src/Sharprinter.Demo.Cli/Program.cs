@@ -12,8 +12,12 @@ app.Configure(config =>
     config.AddBranch<PrintSettings>("print", p =>
     {
         p.AddCommand<PrintReceiptCommand>("receipt")
-            .WithDescription("Print a sample receipt")
+            .WithDescription("Print a sample receipt directly to the printer")
             .WithExample("print", "receipt", "-p COM1", "-r", "-r 9600");
+        
+        p.AddCommand<PrintConsoleCommand>("console")
+            .WithDescription("Print a sample receipt to the console")
+            .WithExample("print", "console");
     });
 });
 
