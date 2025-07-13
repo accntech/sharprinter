@@ -26,4 +26,8 @@ public class PrintSettings : CommandSettings
     [Description("Cut the paper after printing after printing (only for printers that support this)")]
     [DefaultValue(false)]
     public bool? CutPaper { get; set; }
+
+    [CommandOption("-f|--output-file <OUTPUT-FILE>")]
+    [Description("Output file path for file printer (default: receipt_YYYYMMDD_HHMMSS.txt)")]
+    public string? OutputFile { get; set; }
 }

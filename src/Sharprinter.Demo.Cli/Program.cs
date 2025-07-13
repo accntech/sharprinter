@@ -14,10 +14,14 @@ app.Configure(config =>
         p.AddCommand<PrintReceiptCommand>("receipt")
             .WithDescription("Print a sample receipt directly to the printer")
             .WithExample("print", "receipt", "-p COM1", "-r", "-r 9600");
-        
+
         p.AddCommand<PrintConsoleCommand>("console")
             .WithDescription("Print a sample receipt to the console")
             .WithExample("print", "console");
+
+        p.AddCommand<PrintFileCommand>("file")
+            .WithDescription("Print a sample receipt to a text file")
+            .WithExample("print", "file", "-f", "my_receipt.txt");
     });
 });
 
