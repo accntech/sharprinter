@@ -19,10 +19,5 @@ public enum Alignment
     /// <summary>
     ///     Aligns text to the right edge.
     /// </summary>
-    Right = 2,
-
-    /// <summary>
-    ///     Justifies text to both left and right edges.
-    /// </summary>
-    Justify = 3
+    Right = 2
 }
