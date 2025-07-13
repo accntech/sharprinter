@@ -118,13 +118,13 @@ public class PrinterContext
     ///     Add action to print image
     /// </summary>
     /// <param name="path">File path of the image</param>
+    /// <param name="filename">Optional filename for the image</param>
     /// <returns>
     ///     <see cref="PrinterContext" />
     /// </returns>
-    /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
-    public PrinterContext Image(string path)
+    public PrinterContext Image(string path, string filename = "")
     {
-        _actions.Add(() => { Printer.PrintImage(path, 0); });
+        _actions.Add(() => { Printer.PrintImage(path, filename, 0); });
         return this;
     }
 

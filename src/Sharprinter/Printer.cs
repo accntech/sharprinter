@@ -67,7 +67,7 @@ internal class Printer : IPrinter
         Sdk.PrintBarCode(_intPtr, type, data, width, height, alignment, position);
     }
 
-    public void PrintImage(string filePath, int scaleMode)
+    public void PrintImage(string filePath, string filename, int scaleMode)
     {
         Sdk.PrintImage(_intPtr, filePath, scaleMode);
     }
