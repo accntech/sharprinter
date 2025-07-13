@@ -67,7 +67,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Simulates a paper cut operation with a specified distance by outputting a confirmation message.
     /// </summary>
-    /// <param name="distance">The distance for the paper cut operation.</param>
+    /// <param name="distance">The distance for the paper cut operation (not used in console implementation).</param>
     public void CutPaperWithDistance(int distance)
     {
         Console.WriteLine($"Paper cut with distance {distance} requested.");
@@ -91,9 +91,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Simulates opening a cash drawer by outputting a confirmation message.
     /// </summary>
-    /// <param name="pinMode">The pin mode for the cash drawer operation.</param>
-    /// <param name="onTime">The on time duration for the cash drawer operation.</param>
-    /// <param name="ofTime">The off time duration for the cash drawer operation.</param>
+    /// <param name="pinMode">The pin mode for the cash drawer operation (not used in console implementation).</param>
+    /// <param name="onTime">The on time duration for the cash drawer operation (not used in console implementation).</param>
+    /// <param name="ofTime">The off time duration for the cash drawer operation (not used in console implementation).</param>
     public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
     {
         Console.WriteLine("Open cash drawer requested");
@@ -103,12 +103,31 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Prints text with specified alignment and text size to the console with visual borders.
     ///     The text is automatically wrapped to fit within the maximum line character limit.
+    ///     Note: The textWrap parameter controls whether text is wrapped to multiple lines.
     /// </summary>
     /// <param name="data">The text data to print.</param>
-    /// <param name="alignment">The text alignment: 0 for left, 1 for center, 2 for right.</param>
+    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
+    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintText(string data, int alignment, int textSize)
+    public void PrintText(string data, bool textWrap, int alignment, int textSize)
     {
+        if (!textWrap)
+        {
+            var trimmed = data.Length > maxLineCharacter
+                ? data[..maxLineCharacter]
+                : data;
+
+            var line = alignment switch
+            {
+                0 => trimmed, // Left alignment
+                1 => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                2 => trimmed.PadRight(maxLineCharacter), // Right alignment
+                _ => trimmed
+            };
+            Console.Write(ReceiptText(line, maxLineCharacter));
+            return;
+        }
+
         var lines = data.SplitIntoLines(maxLineCharacter);
 
         if (lines.Count == 1)
@@ -141,13 +160,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         }
     }
 
-    /// <summary>
-    ///     Formats text with vertical borders and padding for receipt-style output.
-    /// </summary>
-    /// <param name="text">The text to format.</param>
-    /// <param name="maxChar">The maximum number of characters per line.</param>
-    /// <returns>A formatted string with vertical borders and padding.</returns>
-    private string ReceiptText(string text, int maxChar)
+    private static string ReceiptText(string text, int maxChar)
     {
         var paddedLeft = $"   {text}";
         var paddedRight = paddedLeft.PadRight(maxChar + Border.Padding - 2);
@@ -158,12 +171,31 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Prints text with specified alignment and text size to the console with visual borders.
     ///     Each line of text is printed on a separate line with a newline character.
+    ///     Note: The textWrap parameter controls whether text is wrapped to multiple lines.
     /// </summary>
     /// <param name="data">The text data to print.</param>
-    /// <param name="alignment">The text alignment: 0 for left, 1 for center, 2 for right.</param>
+    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
+    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintTextLine(string data, int alignment, int textSize)
+    public void PrintTextLine(string data, bool textWrap, int alignment, int textSize)
     {
+        if (!textWrap)
+        {
+            var trimmed = data.Length > maxLineCharacter
+                ? data[..maxLineCharacter]
+                : data;
+
+            var line = alignment switch
+            {
+                0 => trimmed, // Left alignment
+                1 => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                2 => trimmed.PadRight(maxLineCharacter), // Right alignment
+                _ => trimmed
+            };
+            Console.WriteLine(ReceiptText(line, maxLineCharacter));
+            return;
+        }
+
         var lines = data.SplitIntoLines(maxLineCharacter);
 
         foreach (var line in lines)

@@ -85,23 +85,25 @@ public class Printer : IPrinter
     }
 
     /// <summary>
-    ///     Prints text with the specified alignment and text size.
+    ///     Prints text with the specified alignment, text wrapping, and text size.
     /// </summary>
     /// <param name="data">The text data to print.</param>
-    /// <param name="alignment">The text alignment.</param>
-    /// <param name="textSize">The text size.</param>
-    public void PrintText(string data, int alignment, int textSize)
+    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
+    /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
+    /// <param name="textSize">The text size to use for printing.</param>
+    public void PrintText(string data, bool textWrap, int alignment, int textSize)
     {
         Sdk.PrintText(_intPtr, data, alignment, textSize);
     }
 
     /// <summary>
-    ///     Prints a line of text with the specified alignment and text size.
+    ///     Prints a line of text with the specified alignment, text wrapping, and text size, followed by a newline.
     /// </summary>
     /// <param name="data">The text data to print.</param>
-    /// <param name="alignment">The text alignment.</param>
-    /// <param name="textSize">The text size.</param>
-    public void PrintTextLine(string data, int alignment, int textSize)
+    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
+    /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
+    /// <param name="textSize">The text size to use for printing.</param>
+    public void PrintTextLine(string data, bool textWrap, int alignment, int textSize)
     {
         Sdk.PrintText(_intPtr, $"{data}\n", alignment, textSize);
     }
