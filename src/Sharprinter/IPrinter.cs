@@ -85,6 +85,7 @@ public interface IPrinter
     ///     Prints an image from a file with specified scaling mode.
     /// </summary>
     /// <param name="filePath">The path to the image file to print.</param>
+    /// <param name="filename">Optional filename for the image</param>
     /// <param name="scaleMode">The scaling mode for the image.</param>
-    void PrintImage(string filePath, int scaleMode);
+    void PrintImage(string filePath, string filename, int scaleMode);
 }

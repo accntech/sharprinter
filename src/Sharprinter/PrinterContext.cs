@@ -45,7 +45,6 @@ public class PrinterContext
     /// <returns>
     ///     <see cref="PrinterContext" />
     /// </returns>
-    /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext Text(string text, Alignment alignment = Alignment.Left, int textSize = 0)
     {
         _actions.Add(() => Printer.PrintText(text, (int)alignment, textSize));
@@ -62,7 +61,6 @@ public class PrinterContext
     /// <returns>
     ///     <see cref="PrinterContext" />
     /// </returns>
-    /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext TextLine(string text, bool textWrap, Alignment alignment = Alignment.Left,
         int textSize = 0)
     {
@@ -80,7 +78,7 @@ public class PrinterContext
     /// <returns>
     ///     <see cref="PrinterContext" /> for method chaining.
     /// </returns>
-    public PrinterContext TextSeparator(char character = '-')
+    public PrinterContext TextSeparator(char character = '─')
     {
         var separator = new string(character, _options.MaxLineCharacter);
         return TextLine(separator, false);
@@ -134,7 +132,6 @@ public class PrinterContext
     /// <param name="barcode">The barcode data to be printed.</param>
     /// <param name="alignment">The alignment of the barcode (default is <see cref="Alignment.Left" />).</param>
     /// <returns>The current <see cref="PrinterContext" /> instance for method chaining.</returns>
-    /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public PrinterContext BarCode(string barcode, Alignment alignment = Alignment.Left)
     {
         _actions.Add(() => Printer.PrintBarCode(73, barcode, 3, 100, (int)alignment, 2));
@@ -161,8 +158,6 @@ public class PrinterContext
     ///     Start printing
     /// </summary>
     /// <param name="cancellationToken">Token to cancel the operation</param>
-    /// <returns></returns>
-    /// <exception cref="Exception">Throws an exception when printer returns error code</exception>
     public Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         return Task.Factory.StartNew(() =>
