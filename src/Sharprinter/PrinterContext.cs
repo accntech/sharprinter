@@ -26,6 +26,17 @@ public class PrinterContext
     }
 
     /// <summary>
+    ///     Initializes a new instance of the <see cref="PrinterContext" /> class with the specified printer and options.
+    /// </summary>
+    /// <param name="printer">The printer implementation to use for print operations.</param>
+    /// <param name="options">The printer options for configuration.</param>
+    public PrinterContext(IPrinter printer, PrinterOptions options)
+    {
+        _options = options;
+        Printer = printer;
+    }
+
+    /// <summary>
     ///     Add action to print text
     /// </summary>
     /// <param name="text">Text to be print</param>
