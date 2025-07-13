@@ -1,4 +1,5 @@
 ﻿// ReSharper disable once CheckNamespace
+
 namespace Sharprinter;
 
 /// <summary>
@@ -6,13 +7,6 @@ namespace Sharprinter;
 /// </summary>
 public interface ITable
 {
-    /// <summary>
-    ///     Adds a header row to the table with the specified header items.
-    /// </summary>
-    /// <param name="headers">Array of header items defining the column headers.</param>
-    /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
-    ITable AddHeader(HeaderItem[] headers);
-
     /// <summary>
     ///     Adds a data row to the table with the specified line items.
     /// </summary>
@@ -24,8 +18,10 @@ public interface ITable
     ///     Adds a single-column data row to the table with the specified label.
     /// </summary>
     /// <param name="label">The text content for the row.</param>
+    /// <param name="textWrap">Indicates whether the text should wrap within the row.</param>
+   /// <param name="horizontalAlignment">Specifies the horizontal alignment of the text within the row.</param>
     /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
-    ITable AddLine(string label);
+    ITable AddLine(string label, bool textWrap = true, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left);
 
     /// <summary>
     ///     Adds a two-column data row to the table with a label and value.
@@ -40,7 +36,7 @@ public interface ITable
     ///     Adds an empty row to the table.
     /// </summary>
     /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
-    ITable AddEmptyLine();
+    ITable AddEmptyLine(int rows = 1);
 
     /// <summary>
     ///     Adds a horizontal separator row to the table.

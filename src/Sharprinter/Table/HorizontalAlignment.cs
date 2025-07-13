@@ -4,7 +4,7 @@ namespace Sharprinter;
 /// <summary>
 ///     Defines the alignment options for text and table content.
 /// </summary>
-public enum Alignment
+public enum HorizontalAlignment
 {
     /// <summary>
     ///     Aligns text to the left edge.
