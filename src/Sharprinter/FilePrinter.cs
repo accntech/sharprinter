@@ -4,22 +4,13 @@ using System.IO;
 namespace Sharprinter;
 
 /// <summary>
-///     A file-based implementation of the IPrinter interface that simulates printer operations
-///     by outputting formatted text to a text file with visual borders and formatting.
+///     A file-based implementation of the <see cref="IPrinter" /> interface that writes formatted receipt output to a
+///     file.
 /// </summary>
+/// <param name="writer">The <see cref="StreamWriter" /> used to write output to the file.</param>
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
 public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
 {
-    private const int Padding = 8; // Padding for file output
-
-    // Common ASCII characters for borders
-    private const char TopLeft = '╭';
-    private const char TopRight = '╮';
-    private const char BottomLeft = '╰';
-    private const char BottomRight = '╯';
-    private const char HorizontalLine = '─';
-    private const char VerticalLine = '│';
-
     /// <summary>
     ///     Initializes the file printer and writes a header message to the file.
     /// </summary>
@@ -50,8 +41,8 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
         writer.WriteLine("File port opened.");
         writer.WriteLine();
 
-        var line = new string(HorizontalLine, maxLineCharacter + Padding - 2);
-        writer.WriteLine($"{TopLeft}{line}{TopRight}");
+        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        writer.WriteLine($"{Border.TopLeft}{line}{Border.TopRight}");
     }
 
     /// <summary>
@@ -59,8 +50,8 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// </summary>
     public void ClosePort()
     {
-        var line = new string(HorizontalLine, maxLineCharacter + Padding - 2);
-        writer.WriteLine($"{BottomLeft}{line}{BottomRight}");
+        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        writer.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
         writer.WriteLine();
         writer.WriteLine("File port closed.");
         writer.Close();
@@ -163,9 +154,9 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     private string ReceiptText(string text, int maxChar)
     {
         var paddedLeft = $"   {text}";
-        var paddedRight = paddedLeft.PadRight(maxChar + Padding - 2);
+        var paddedRight = paddedLeft.PadRight(maxChar + Border.Padding - 2);
 
-        return $"{VerticalLine}{paddedRight}{VerticalLine}";
+        return $"{Border.VerticalLine}{paddedRight}{Border.VerticalLine}";
     }
 
     /// <summary>
@@ -204,8 +195,8 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="position">The barcode position.</param>
     public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
     {
-        var lineChar = new string(HorizontalLine, maxLineCharacter - 2);
-        writer.WriteLine(ReceiptText($"{TopLeft}{lineChar}{TopRight}", maxLineCharacter));
+        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+        writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
         var maxChar = maxLineCharacter - 8;
         var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
@@ -228,7 +219,7 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
         var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
         writer.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
 
-        writer.WriteLine(ReceiptText($"{BottomLeft}{lineChar}{BottomRight}", maxLineCharacter));
+        writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
     }
 
     private static string GenerateDummyBarcode(string input)
@@ -256,8 +247,8 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="scaleMode">The scaling mode (not used in file implementation).</param>
     public void PrintImage(string filePath, string filename, int scaleMode)
     {
-        var lineChar = new string(HorizontalLine, maxLineCharacter - 2);
-        writer.WriteLine(ReceiptText($"{TopLeft}{lineChar}{TopRight}", maxLineCharacter));
+        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+        writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
         var width = maxLineCharacter - 8;
         var lines = filename.SplitIntoLines(width);
@@ -267,6 +258,6 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
             writer.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
         }
 
-        writer.WriteLine(ReceiptText($"{BottomLeft}{lineChar}{BottomRight}", maxLineCharacter));
+        writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
     }
 }

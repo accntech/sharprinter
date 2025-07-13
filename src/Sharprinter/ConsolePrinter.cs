@@ -10,15 +10,6 @@ namespace Sharprinter;
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
 public class ConsolePrinter(int maxLineCharacter) : IPrinter
 {
-    private const int Padding = 8; // Padding for console output
-
-    private const char TopLeft = '╭';
-    private const char TopRight = '╮';
-    private const char BottomLeft = '╰';
-    private const char BottomRight = '╯';
-    private const char HorizontalLine = '─';
-    private const char VerticalLine = '│';
-
     /// <summary>
     ///     Initializes the console printer and sets up UTF-8 encoding for proper character display.
     /// </summary>
@@ -48,8 +39,8 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         Console.WriteLine("Console port opened.");
         Console.WriteLine();
 
-        var line = new string(HorizontalLine, maxLineCharacter + Padding - 2);
-        Console.WriteLine($"{TopLeft}{line}{TopRight}");
+        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        Console.WriteLine($"{Border.TopLeft}{line}{Border.TopRight}");
     }
 
     /// <summary>
@@ -57,8 +48,8 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// </summary>
     public void ClosePort()
     {
-        var line = new string(HorizontalLine, maxLineCharacter + Padding - 2);
-        Console.WriteLine($"{BottomLeft}{line}{BottomRight}");
+        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        Console.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
         Console.WriteLine();
         Console.WriteLine("Console port closed.");
     }
@@ -159,9 +150,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     private string ReceiptText(string text, int maxChar)
     {
         var paddedLeft = $"   {text}";
-        var paddedRight = paddedLeft.PadRight(maxChar + Padding - 2);
+        var paddedRight = paddedLeft.PadRight(maxChar + Border.Padding - 2);
 
-        return $"{VerticalLine}{paddedRight}{VerticalLine}";
+        return $"{Border.VerticalLine}{paddedRight}{Border.VerticalLine}";
     }
 
     /// <summary>
@@ -201,8 +192,8 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <exception cref="NotImplementedException">Thrown because barcode printing is not implemented in the console version.</exception>
     public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
     {
-        var lineChar = new string(HorizontalLine, maxLineCharacter - 2);
-        Console.WriteLine(ReceiptText($"{TopLeft}{lineChar}{TopRight}", maxLineCharacter));
+        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+        Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
         var maxChar = maxLineCharacter - 8;
         var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
@@ -225,7 +216,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
         Console.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
 
-        Console.WriteLine(ReceiptText($"{BottomLeft}{lineChar}{BottomRight}", maxLineCharacter));
+        Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
     }
 
     private static string GenerateDummyBarcode(string input)
@@ -253,8 +244,8 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="scaleMode">The scale mode for the image (not used in console implementation).</param>
     public void PrintImage(string filePath, string filename, int scaleMode)
     {
-        var lineChar = new string(HorizontalLine, maxLineCharacter - 2);
-        Console.WriteLine(ReceiptText($"{TopLeft}{lineChar}{TopRight}", maxLineCharacter));
+        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+        Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
         var width = maxLineCharacter - 8;
         var lines = filename.SplitIntoLines(width);
@@ -264,6 +255,6 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
             Console.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
         }
 
-        Console.WriteLine(ReceiptText($"{BottomLeft}{lineChar}{BottomRight}", maxLineCharacter));
+        Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
     }
 }
