@@ -43,7 +43,8 @@ internal class Printer : IPrinter
 
     public void FeedLine(int lines)
     {
-        Sdk.FeedLine(_intPtr, lines);
+        // use PrintText to ensure proper line spacing with different printers
+        Sdk.PrintText(_intPtr, new string('\n', lines), 0, 0);
     }
 
     public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
@@ -54,6 +55,11 @@ internal class Printer : IPrinter
     public void PrintText(string data, int alignment, int textSize)
     {
         Sdk.PrintText(_intPtr, data, alignment, textSize);
+    }
+    
+    public void PrintTextLine(string data, int alignment, int textSize)
+    {
+        Sdk.PrintText(_intPtr, $"{data}\n", alignment, textSize);
     }
 
     public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)

@@ -61,6 +61,14 @@ public interface IPrinter
     /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size multiplier.</param>
     void PrintText(string data, int alignment, int textSize);
+    
+    /// <summary>
+    ///     Prints text with line terminator, specified alignment and text size .
+    /// </summary>
+    /// <param name="data">The text data to print.</param>
+    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
+    /// <param name="textSize">The text size multiplier.</param>
+    void PrintTextLine(string data, int alignment, int textSize);
 
     /// <summary>
     ///     Prints a barcode with specified parameters.

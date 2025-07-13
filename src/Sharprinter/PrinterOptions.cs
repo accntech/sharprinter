@@ -23,13 +23,11 @@ public sealed class PrinterOptions
 
     /// <summary>
     ///     Gets or sets a value indicating whether the cash drawer should be opened after printing.
-    ///     Default value is false.
     /// </summary>
     public bool OpenDrawer { get; set; }
 
     /// <summary>
     ///     Gets or sets a value indicating whether the paper should be cut after printing.
-    ///     Default value is false.
     /// </summary>
-    public bool CutPaper { get; set; } = false;
+    public bool CutPaper { get; set; }
 }

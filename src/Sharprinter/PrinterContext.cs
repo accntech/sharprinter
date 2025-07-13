@@ -58,7 +58,7 @@ public class PrinterContext
         _actions.Add(() =>
         {
             if (textWrap) text = text.Wrap(_options.MaxLineCharacter);
-            Printer.PrintText($"{text}\n", (int)alignment, textSize);
+            Printer.PrintTextLine($"{text}", (int)alignment, textSize);
         });
         return this;
     }
@@ -90,7 +90,7 @@ public class PrinterContext
             throw new ArgumentOutOfRangeException(nameof(lines), "Number of lines must be at least 1.");
         }
 
-        _actions.Add(() => Printer.PrintText(new string('\n', lines), 0, 0));
+        _actions.Add(() => Printer.FeedLine(lines));
         return this;
     }
 
