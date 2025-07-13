@@ -22,6 +22,7 @@ public class PrintReceiptCommand : AsyncCommand<PrintSettings>
             .TextLine("Welcome to our store!", false, Alignment.Center, 1)
             .TextLine("Thank you for your purchase!", true)
             .Image(@".\Assets\image.jpg", "7-ELEVEN Logo")
+            .BarCode("123456789012")
             .FeedLine(3)
             .ExecuteAsync();
 
