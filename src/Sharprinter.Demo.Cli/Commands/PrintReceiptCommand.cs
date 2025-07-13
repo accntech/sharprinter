@@ -13,7 +13,7 @@ public class PrintReceiptCommand : AsyncCommand<PrintSettings>
             BaudRate = settings.BaudRate,
             MaxLineCharacter = settings.MaxLineCharacter ?? 32,
             OpenDrawer = settings.OpenDrawer ?? false,
-            CutPaper = settings.CutPaper ?? false
+            CutPaper = settings.CutPaper ?? false,
         };
 
         var printer = new PrinterContext(options);
@@ -21,6 +21,7 @@ public class PrintReceiptCommand : AsyncCommand<PrintSettings>
         await printer
             .TextLine("Welcome to our store!", false, Alignment.Center, 1)
             .TextLine("Thank you for your purchase!", true)
+            .Image(@".\Assets\image.jpg", "7-ELEVEN Logo")
             .FeedLine(3)
             .ExecuteAsync();
 
