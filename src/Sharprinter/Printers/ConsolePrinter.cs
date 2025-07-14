@@ -9,7 +9,7 @@ namespace Sharprinter;
 ///     by outputting formatted text to the console with visual borders and formatting.
 /// </summary>
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
-public class ConsolePrinter(int maxLineCharacter) : IPrinter
+public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
 {
     /// <summary>
     ///     Initializes the console printer and sets up UTF-8 encoding for proper character display.
@@ -101,68 +101,6 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         Console.WriteLine();
     }
 
-    /// <summary>
-    ///     Prints text with specified alignment and text size to the console with visual borders.
-    ///     The text is automatically wrapped to fit within the maximum line character limit.
-    ///     Note: The textWrap parameter controls whether text is wrapped to multiple lines.
-    /// </summary>
-    /// <param name="data">The text data to print.</param>
-    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
-    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
-    /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
-    {
-        if (textWrap == TextWrap.None)
-        {
-            var trimmed = data.Length > maxLineCharacter
-                ? data[..maxLineCharacter]
-                : data;
-
-            var line = alignment switch
-            {
-                HorizontalAlignment.Left => trimmed, // Left alignment
-                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
-                _ => trimmed
-            };
-            Console.Write(ReceiptText(line, maxLineCharacter));
-            return;
-        }
-
-        var lines = data.SplitIntoLines(maxLineCharacter);
-
-        if (lines.Count == 1)
-        {
-            Console.Write(ReceiptText(lines[0], maxLineCharacter));
-            return;
-        }
-
-        var counter = 0;
-        foreach (var line in lines)
-        {
-            var formattedLine = alignment switch
-            {
-                HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
-                _ => line
-            };
-
-            if (counter < lines.Count - 1)
-            {
-                Console.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
-            }
-            else
-            {
-                Console.Write(ReceiptText(formattedLine, maxLineCharacter)); // Last line without newline
-            }
-
-            counter++;
-        }
-    }
-
     private static string ReceiptText(string text, int maxChar)
     {
         var paddedLeft = $"   {text}";
@@ -180,7 +118,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
         if (textWrap == TextWrap.None)
         {

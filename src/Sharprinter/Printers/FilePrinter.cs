@@ -10,7 +10,7 @@ namespace Sharprinter;
 /// </summary>
 /// <param name="writer">The <see cref="StreamWriter" /> used to write output to the file.</param>
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
-public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
+public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
 {
     /// <summary>
     ///     Initializes the file printer and writes a header message to the file.
@@ -105,60 +105,6 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
         writer.WriteLine();
     }
 
-    /// <summary>
-    ///     Prints text with specified alignment and text size to the file with visual borders.
-    ///     The text is automatically wrapped to fit within the maximum line character limit.
-    ///     Note: The textWrap parameter controls whether text is wrapped to multiple lines.
-    /// </summary>
-    /// <param name="data">The text data to print.</param>
-    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
-    /// <param name="alignment">The text alignment.</param>
-    /// <param name="textSize">The text size (not used in file implementation).</param>
-    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
-    {
-        if (textWrap == TextWrap.None)
-        {
-            var trimmed = data.Length > maxLineCharacter
-                ? data[..maxLineCharacter]
-                : data;
-
-            writer.Write(ReceiptText(trimmed, maxLineCharacter));
-            return;
-        }
-
-        var lines = data.SplitIntoLines(maxLineCharacter);
-
-        if (lines.Count == 1)
-        {
-            writer.Write(ReceiptText(lines[0], maxLineCharacter));
-            return;
-        }
-
-        var counter = 0;
-        foreach (var line in lines)
-        {
-            var formattedLine = alignment switch
-            {
-                HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
-                _ => line
-            };
-
-            if (counter < lines.Count - 1)
-            {
-                writer.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
-            }
-            else
-            {
-                writer.Write(ReceiptText(formattedLine, maxLineCharacter)); // Last line without newline
-            }
-
-            counter++;
-        }
-    }
-
     private static string ReceiptText(string text, int maxChar)
     {
         var paddedLeft = $"   {text}";
@@ -176,7 +122,7 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment.</param>
     /// <param name="textSize">The text size (not used in file implementation).</param>
-    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
         if (textWrap == TextWrap.None)
         {
@@ -221,7 +167,8 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="height">The barcode height (not used in file implementation).</param>
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The HRI position (not used in file implementation).</param>
-    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
+    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large,
+        HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));

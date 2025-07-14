@@ -57,18 +57,7 @@ public interface IPrinter
     /// <param name="ofTime">The duration in milliseconds to keep the pin inactive.</param>
     void OpenCashDrawer(int pinMode = 0, int onTime = 30, int ofTime = 255);
 
-    /// <summary>
-    ///     Prints text with specified alignment and text size.
-    ///     Note: The textWrap parameter is not used in the current implementation but is kept for interface compatibility.
-    /// </summary>
-    /// <param name="data">The text data to print.</param>
-    /// <param name="textWrap">Indicates whether text wrapping is enabled (not currently implemented).</param>
-    /// <param name="alignment">The text alignment.</param>
-    /// <param name="textSize">The text size multiplier.</param>
-    void PrintText(string data, TextWrap textWrap = TextWrap.None,
-        HorizontalAlignment alignment = HorizontalAlignment.Left, TextSize textSize = TextSize.Normal);
-
-    /// <summary>
+   /// <summary>
     ///     Prints text with line terminator, specified alignment and text size.
     ///     Note: The textWrap parameter is not used in the current implementation but is kept for interface compatibility.
     /// </summary>
@@ -76,7 +65,7 @@ public interface IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled (not currently implemented).</param>
     /// <param name="alignment">The text alignment.</param>
     /// <param name="textSize">The text size multiplier.</param>
-    void PrintTextLine(string data, TextWrap textWrap = TextWrap.None,
+    void PrintText(string data, TextWrap textWrap = TextWrap.None,
         HorizontalAlignment alignment = HorizontalAlignment.Left, TextSize textSize = TextSize.Normal);
 
     /// <summary>

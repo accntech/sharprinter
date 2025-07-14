@@ -16,7 +16,7 @@ namespace Sharprinter;
 ///     Each method returns the context instance, allowing for method chaining.
 ///     Print operations are queued and executed when <see cref="ExecuteAsync" /> is called.
 /// </remarks>
-public class PrinterContext
+public sealed class PrinterContext
 {
     internal IPrinter Printer { get; }
 
@@ -47,74 +47,37 @@ public class PrinterContext
     }
 
     /// <summary>
-    ///     Adds an action to print text at the current position.
+    ///     Adds a text line element to the print job with optional configuration.
     /// </summary>
-    /// <param name="text">The text content to be printed.</param>
-    /// <param name="textWrap">Whether to wrap the text to the next line if it exceeds the paper width.</param>
-    /// <param name="horizontalAlignment">
-    ///     The horizontal alignment of the text on the paper. Default is
-    ///     <see cref="HorizontalAlignment.Left" />.
+    /// <param name="data">The text content to be printed as a line.</param>
+    /// <param name="action">
+    ///     An optional action to further configure the <see cref="IText" /> element (e.g., alignment, wrapping, size).
     /// </param>
-    /// <param name="textSize">The size of the text. Use 0 for default size.</param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="text" /> is null or empty.</exception>
-    public PrinterContext Text(string text, TextWrap textWrap = TextWrap.None,
-        HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
-        TextSize textSize = TextSize.Normal)
+    public PrinterContext AddText(string data, Action<IText>? action = null)
     {
-        if (string.IsNullOrEmpty(text))
-        {
-            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
-        }
+        var text = new Text(this, data);
+        action?.Invoke(text);
 
-        _actions.Add(() => Printer.PrintText(text, textWrap, horizontalAlignment, textSize));
-        return this;
+        return text.Add();
     }
 
     /// <summary>
-    ///     Adds an action to print text followed by a new line.
+    ///     Adds a horizontal separator line to the print job.
     /// </summary>
-    /// <param name="text">The text content to be printed.</param>
-    /// <param name="textWrap">Whether to wrap the text to the next line if it exceeds the paper width.</param>
-    /// <param name="alignment">
-    ///     The horizontal alignment of the text on the paper. Default is
-    ///     <see cref="HorizontalAlignment.Left" />.
+    /// <param name="character">
+    ///     The character to use for the separator line. Defaults to '─'.
     /// </param>
-    /// <param name="textSize">The size of the text. Use 0 for default size.</param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="text" /> is null or empty.</exception>
-    public PrinterContext TextLine(string text, TextWrap textWrap = TextWrap.None,
-        HorizontalAlignment alignment = HorizontalAlignment.Left,
-        TextSize textSize = TextSize.Normal)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
-        }
-
-        _actions.Add(() => { Printer.PrintTextLine($"{text}", textWrap, alignment, textSize); });
-        return this;
-    }
-
-    /// <summary>
-    ///     Adds a separator line consisting of repeated characters.
-    /// </summary>
-    /// <param name="character">The character to use for the separator line. Default is '─' (horizontal line).</param>
-    /// <returns>
-    ///     The current <see cref="PrinterContext" /> instance for method chaining.
-    /// </returns>
-    /// <remarks>
-    ///     The separator line will span the full width of the paper as defined by
-    ///     <see cref="PrinterOptions.MaxLineCharacter" />.
-    /// </remarks>
-    public PrinterContext TextSeparator(char character = '─')
+    public PrinterContext AddSeparator(char character = '─')
     {
         var separator = new string(character, _options.MaxLineCharacter);
-        return TextLine(separator);
+        _actions.Add(() => { Printer.PrintText(separator); });
+        return this;
     }
 
     /// <summary>
@@ -146,53 +109,49 @@ public class PrinterContext
     ///     The table will be configured to use the maximum line character count from the printer options
     ///     to ensure proper formatting within the paper width.
     /// </remarks>
-    public ITable Table()
+    public PrinterContext AddTable(Action<ITable> expression)
     {
-        return new Table(this, _options.MaxLineCharacter);
+        var table = new Table(this, _options.MaxLineCharacter);
+        expression.Invoke(table);
+        return this;
     }
 
     /// <summary>
-    ///     Adds an action to print an image from a file.
+    ///     Adds an image to the print queue with optional configuration.
     /// </summary>
     /// <param name="path">The file path of the image to be printed.</param>
-    /// <param name="filename">Optional filename for the image. If not provided, the filename from the path will be used.</param>
+    /// <param name="expression">
+    ///     An optional action to configure the image using the <see cref="IImage" /> interface.
+    ///     If not provided, default image settings will be used.
+    /// </param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="path" /> is null, empty, or invalid.</exception>
-    /// <exception cref="System.IO.FileNotFoundException">Thrown when the image file does not exist.</exception>
-    public PrinterContext Image(string path, string filename = "")
+    public PrinterContext AddImage(string path, Action<IImage>? expression = null)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            throw new ArgumentException("Image path cannot be null or empty.", nameof(path));
-        }
+        var image = new Image(this, path);
+        expression?.Invoke(image);
 
-        _actions.Add(() => { Printer.PrintImage(path, filename, ScaleMode.Normal); });
-        return this;
+        return image.Add();
     }
 
     /// <summary>
-    ///     Adds an action to print a barcode.
+    ///     Adds a barcode to the print queue with optional configuration.
     /// </summary>
-    /// <param name="barcode">The barcode data to be printed.</param>
-    /// <param name="width">The width of the barcode</param>
-    /// <param name="height">The height of the barcode</param>
-    /// <param name="alignment">The horizontal alignment of the barcode on the paper. Default is <see cref="HorizontalAlignment.Left" />.</param>
-    /// <param name="position"> The HRI (Human Readable Interpretation) position. Default is <see cref="HRIPosition.Below" />.</param>
+    /// <param name="data">The data to encode in the barcode.</param>
+    /// <param name="expression">
+    ///     An optional action to configure the barcode using the <see cref="IBarcode" /> interface.
+    ///     If not provided, default barcode settings will be used.
+    /// </param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="barcode" /> is null or empty.</exception>
-    public PrinterContext BarCode(string barcode, int height,BarcodeWidth width = BarcodeWidth.Large,  HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.Below)
+    public PrinterContext AddBarcode(string data, Action<IBarcode>? expression = null)
     {
-        if (string.IsNullOrEmpty(barcode))
-        {
-            throw new ArgumentException("Barcode data cannot be null or empty.", nameof(barcode));
-        }
+        var barcode = new Barcode(this, data);
+        expression?.Invoke(barcode);
 
-        _actions.Add(() => Printer.PrintBarCode(barcode, height, width, alignment, position));
-        return this;
+        return barcode.Add();
     }
 
     /// <summary>
@@ -242,10 +201,5 @@ public class PrinterContext
     internal void AddAction(Action action)
     {
         _actions.Add(action);
-    }
-
-    internal void AddActions(List<Action> actions)
-    {
-        _actions.AddRange(actions ?? throw new ArgumentNullException(nameof(actions)));
     }
 }

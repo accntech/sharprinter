@@ -1,71 +1,58 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 // ReSharper disable once CheckNamespace
 namespace Sharprinter;
+
+/// <summary>
+///     Defines the contract for creating and formatting tables for printing.
+/// </summary>
+public interface ITable
+{
+    /// <summary>
+    ///     Adds a new row to the table using the specified configuration action.
+    /// </summary>
+    /// <param name="expression">An action that configures the row by adding cells and formatting.</param>
+    /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
+    ITable AddRow(Action<IRow> expression);
+
+    /// <summary>
+    ///     Adds an empty row to the table.
+    /// </summary>
+    /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
+    ITable FeedLine(int rows = 1);
+
+    /// <summary>
+    ///     Adds a horizontal separator row to the table.
+    /// </summary>
+    /// <returns>The current <see cref="ITable" /> instance for method chaining.</returns>
+    ITable AddSeparator();
+}
 
 /// <summary>
 ///     Internal implementation of the <see cref="ITable" /> interface for creating formatted tables.
 /// </summary>
 internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
 {
-    private readonly List<Action> _printActions = [];
-
-    public ITable AddLine(LineItem[] lines)
+    public ITable AddRow(Action<IRow> expression)
     {
-        _printActions.Add(() =>
-        {
-            var maxRows = lines.Max(x => x.Lines.Count);
-            foreach (var line in lines) line.UpdateLines(maxRows);
+        var row = new Row(maxCharCount);
+        expression.Invoke(row);
 
-            var index = 0;
-            while (index < maxRows)
-            {
-                var groupedLines = lines.Select(x => x.Lines.ElementAtOrDefault(index) ?? string.Empty).ToArray();
-                var lineString = string.Join("", groupedLines);
-                context.Printer.PrintTextLine(lineString);
-                index++;
-            }
-        });
+        var items = row.GetLineItems();
+        foreach (var item in items) context.AddAction(() => context.Printer.PrintText(item));
 
         return this;
     }
 
-    public ITable AddLine(string label, bool textWrap = true, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left)
+    public ITable FeedLine(int rows = 1)
     {
-        AddLine([new LineItem(label, maxCharCount, horizontalAlignment, VerticalAlignment.Top, textWrap)]);
+        context.AddAction(() => context.Printer.FeedLine(rows));
         return this;
     }
 
-    public ITable AddLine(string label, string value, int minValueLength = 15)
+    public ITable AddSeparator()
     {
-        var valueLength = Math.Max(minValueLength, value.Length) + 1;
-        var labelLength = maxCharCount - valueLength; // -1 for space
-        AddLine([
-            new LineItem(label, labelLength),
-            new LineItem($"{value}", valueLength, HorizontalAlignment.Right)
-        ]);
-
+        context.AddAction(() => context.Printer.PrintText(new string(Border.HorizontalLine, maxCharCount)));
         return this;
-    }
-
-    public ITable AddEmptyLine(int rows = 1)
-    {
-        _printActions.Add(() => context.Printer.FeedLine(rows));
-        return this;
-    }
-
-    public ITable AddRowSeparator()
-    {
-        _printActions.Add(() =>
-            context.Printer.PrintTextLine(new string(Border.HorizontalLine, maxCharCount)));
-        return this;
-    }
-
-    public PrinterContext Create()
-    {
-        context.AddActions(_printActions);
-        return context;
     }
 }

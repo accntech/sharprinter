@@ -8,7 +8,7 @@ namespace Sharprinter;
 ///     Provides a wrapper for the printer SDK functionality.
 ///     This class handles communication with thermal printers through the native SDK.
 /// </summary>
-public class Printer(int maxLineCharacter) : IPrinter
+public sealed class Printer(int maxLineCharacter) : IPrinter
 {
     private IntPtr _intPtr = IntPtr.Zero;
 
@@ -86,57 +86,13 @@ public class Printer(int maxLineCharacter) : IPrinter
     }
 
     /// <summary>
-    ///     Prints text with the specified alignment, text wrapping, and text size.
-    /// </summary>
-    /// <param name="data">The text data to print.</param>
-    /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
-    /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
-    /// <param name="textSize">The text size to use for printing.</param>
-    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
-    {
-        if (textWrap == TextWrap.None)
-        {
-            var trimmed = data.Length > maxLineCharacter
-                ? data[..maxLineCharacter]
-                : data;
-
-            Sdk.PrintText(_intPtr, trimmed, 0, (int)textSize);
-            return;
-        }
-
-        var lines = data.SplitIntoLines(maxLineCharacter);
-
-        if (lines.Count == 1)
-        {
-            Sdk.PrintText(_intPtr, lines[0], 0, (int)textSize);
-            return;
-        }
-
-        var counter = 0;
-        foreach (var line in lines)
-        {
-            var formattedLine = alignment switch
-            {
-                HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
-                _ => line
-            };
-
-            Sdk.PrintText(_intPtr, counter < lines.Count - 1 ? $"{formattedLine}\n" : formattedLine, 0, (int)textSize); // Last line without newline
-            counter++;
-        }
-    }
-
-    /// <summary>
     ///     Prints a line of text with the specified alignment, text wrapping, and text size, followed by a newline.
     /// </summary>
     /// <param name="data">The text data to print.</param>
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
     /// <param name="textSize">The text size to use for printing.</param>
-    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
         if (textWrap == TextWrap.None)
         {
