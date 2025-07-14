@@ -3,6 +3,10 @@
 A modern, fluent C# wrapper for thermal printer SDK operations for Windows, designed for POS (Point of Sale) systems and
 receipt printing.
 
+[![NuGet](https://img.shields.io/nuget/v/Sharprinter.svg)](https://www.nuget.org/packages/Sharprinter)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Sharprinter)](https://www.nuget.org/packages/Sharprinter)
+[![GitHub stars](https://img.shields.io/github/stars/accntech/sharprinter)](https://github.com/accntech/sharprinter/stargazers)
+
 ## 🚀 Features
 
 - **Text Printing** - Print text with alignment, sizing, and wrapping
