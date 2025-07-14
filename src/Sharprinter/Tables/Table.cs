@@ -65,7 +65,7 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
 
     public PrinterContext Create()
     {
-        context.AddTableActions(_printActions);
+        context.AddActions(_printActions);
         return context;
     }
 }

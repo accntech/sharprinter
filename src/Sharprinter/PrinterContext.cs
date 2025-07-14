@@ -239,12 +239,12 @@ public class PrinterContext
         }, cancellationToken);
     }
 
-    /// <summary>
-    ///     Adds table actions to the printer context for execution.
-    /// </summary>
-    /// <param name="actions">The list of table actions to add to the print queue.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="actions" /> is null.</exception>
-    internal void AddTableActions(List<Action> actions)
+    internal void AddAction(Action action)
+    {
+        _actions.Add(action);
+    }
+
+    internal void AddActions(List<Action> actions)
     {
         _actions.AddRange(actions ?? throw new ArgumentNullException(nameof(actions)));
     }
