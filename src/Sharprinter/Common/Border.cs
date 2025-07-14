@@ -1,4 +1,5 @@
-﻿namespace Sharprinter;
+﻿// ReSharper disable once CheckNamespace
+namespace Sharprinter;
 
 internal static class Border
 {
