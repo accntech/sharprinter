@@ -82,7 +82,7 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     ///     Feeds the specified number of empty lines to simulate paper feed.
     /// </summary>
     /// <param name="lines">The number of lines to feed.</param>
-    public void FeedLine(int lines)
+    public void FeedLine(int lines = 1)
     {
         var line = 0;
         while (line < lines)
@@ -98,7 +98,7 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="pinMode">The pin mode for the cash drawer operation (not used in file implementation).</param>
     /// <param name="onTime">The on time duration for the cash drawer operation (not used in file implementation).</param>
     /// <param name="ofTime">The off time duration for the cash drawer operation (not used in file implementation).</param>
-    public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
+    public void OpenCashDrawer(int pinMode = 0, int onTime = 30, int ofTime = 255)
     {
         writer.WriteLine("Open cash drawer requested");
         writer.WriteLine();
@@ -111,11 +111,11 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// </summary>
     /// <param name="data">The text data to print.</param>
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
-    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
+    /// <param name="alignment">The text alignment.</param>
     /// <param name="textSize">The text size (not used in file implementation).</param>
-    public void PrintText(string data, bool textWrap, int alignment, int textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (!textWrap)
+        if (textWrap == TextWrap.None)
         {
             var trimmed = data.Length > maxLineCharacter
                 ? data[..maxLineCharacter]
@@ -138,9 +138,10 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
         {
             var formattedLine = alignment switch
             {
-                0 => line, // Left alignment
-                1 => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => line.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
 
@@ -172,11 +173,11 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// </summary>
     /// <param name="data">The text data to print.</param>
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
-    /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
+    /// <param name="alignment">The text alignment.</param>
     /// <param name="textSize">The text size (not used in file implementation).</param>
-    public void PrintTextLine(string data, bool textWrap, int alignment, int textSize)
+    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (!textWrap)
+        if (textWrap == TextWrap.None)
         {
             var trimmed = data.Length > maxLineCharacter
                 ? data[..maxLineCharacter]
@@ -184,9 +185,10 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
 
             var line = alignment switch
             {
-                0 => trimmed, // Left alignment
-                1 => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => trimmed.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => trimmed, // Left alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
                 _ => trimmed
             };
             writer.WriteLine(ReceiptText(line, maxLineCharacter));
@@ -199,9 +201,10 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
         {
             var formattedLine = alignment switch
             {
-                0 => line, // Left alignment
-                1 => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => line.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
 
@@ -212,13 +215,12 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Prints a barcode with specified parameters. This method creates a text representation of a barcode.
     /// </summary>
-    /// <param name="type">The barcode type (not used in file implementation).</param>
     /// <param name="data">The barcode data to encode.</param>
     /// <param name="width">The barcode width (not used in file implementation).</param>
     /// <param name="height">The barcode height (not used in file implementation).</param>
-    /// <param name="alignment">The barcode alignment (0=Left, 1=Center, 2=Right).</param>
+    /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The HRI position (not used in file implementation).</param>
-    public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
+    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
@@ -229,9 +231,10 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
 
         var formatted = alignment switch
         {
-            0 => barcode, // Left alignment
-            1 => barcode.PadLeft((maxChar + barcode.Length) / 2).PadRight(maxChar), // Center alignment
-            2 => barcode.PadRight(maxChar), // Right alignment
+            HorizontalAlignment.Left => barcode, // Left alignment
+            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
+                .PadRight(maxChar), // Center alignment
+            HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
             _ => barcode
         };
 
@@ -270,7 +273,7 @@ public class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
     /// <param name="filePath">The path to the image file (not used in file implementation).</param>
     /// <param name="filename">The filename to display in the image frame.</param>
     /// <param name="scaleMode">The scaling mode (not used in file implementation).</param>
-    public void PrintImage(string filePath, string filename, int scaleMode)
+    public void PrintImage(string filePath, string filename, ScaleMode scaleMode)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));

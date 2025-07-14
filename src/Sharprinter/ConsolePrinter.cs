@@ -78,7 +78,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     ///     Feeds the specified number of empty lines to simulate paper feed.
     /// </summary>
     /// <param name="lines">The number of lines to feed.</param>
-    public void FeedLine(int lines)
+    public void FeedLine(int lines = 1)
     {
         var line = 0;
         while (line < lines)
@@ -94,7 +94,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="pinMode">The pin mode for the cash drawer operation (not used in console implementation).</param>
     /// <param name="onTime">The on time duration for the cash drawer operation (not used in console implementation).</param>
     /// <param name="ofTime">The off time duration for the cash drawer operation (not used in console implementation).</param>
-    public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
+    public void OpenCashDrawer(int pinMode = 0, int onTime = 30, int ofTime = 255)
     {
         Console.WriteLine("Open cash drawer requested");
         Console.WriteLine();
@@ -109,9 +109,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintText(string data, bool textWrap, int alignment, int textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (!textWrap)
+        if (textWrap == TextWrap.None)
         {
             var trimmed = data.Length > maxLineCharacter
                 ? data[..maxLineCharacter]
@@ -119,9 +119,10 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
 
             var line = alignment switch
             {
-                0 => trimmed, // Left alignment
-                1 => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => trimmed.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => trimmed, // Left alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
                 _ => trimmed
             };
             Console.Write(ReceiptText(line, maxLineCharacter));
@@ -141,9 +142,10 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         {
             var formattedLine = alignment switch
             {
-                0 => line, // Left alignment
-                1 => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => line.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
 
@@ -177,9 +179,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (0=Left, 1=Center, 2=Right).</param>
     /// <param name="textSize">The text size (not used in console implementation).</param>
-    public void PrintTextLine(string data, bool textWrap, int alignment, int textSize)
+    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (!textWrap)
+        if (textWrap == TextWrap.None)
         {
             var trimmed = data.Length > maxLineCharacter
                 ? data[..maxLineCharacter]
@@ -187,9 +189,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
 
             var line = alignment switch
             {
-                0 => trimmed, // Left alignment
-                1 => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => trimmed.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => trimmed, // Left alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
                 _ => trimmed
             };
             Console.WriteLine(ReceiptText(line, maxLineCharacter));
@@ -202,9 +204,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
         {
             var formattedLine = alignment switch
             {
-                0 => line, // Left alignment
-                1 => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
-                2 => line.PadRight(maxLineCharacter), // Right alignment
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
 
@@ -215,14 +217,13 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <summary>
     ///     Prints a barcode with specified parameters. This method is not implemented in the console version.
     /// </summary>
-    /// <param name="type">The barcode type.</param>
     /// <param name="data">The barcode data.</param>
     /// <param name="width">The barcode width.</param>
     /// <param name="height">The barcode height.</param>
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The barcode position.</param>
     /// <exception cref="NotImplementedException">Thrown because barcode printing is not implemented in the console version.</exception>
-    public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
+    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
@@ -233,9 +234,9 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
 
         var formatted = alignment switch
         {
-            0 => barcode, // Left alignment
-            1 => barcode.PadLeft((maxChar + barcode.Length) / 2).PadRight(maxChar), // Center alignment
-            2 => barcode.PadRight(maxChar), // Right alignment
+            HorizontalAlignment.Left => barcode, // Left alignment
+            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2).PadRight(maxChar), // Center alignment
+            HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
             _ => barcode
         };
 
@@ -274,7 +275,7 @@ public class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="filePath">The file path of the image (not used in console implementation).</param>
     /// <param name="filename">The filename to display in the image frame.</param>
     /// <param name="scaleMode">The scale mode for the image (not used in console implementation).</param>
-    public void PrintImage(string filePath, string filename, int scaleMode)
+    public void PrintImage(string filePath, string filename, ScaleMode scaleMode)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));

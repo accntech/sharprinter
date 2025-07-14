@@ -7,7 +7,7 @@ namespace Sharprinter;
 ///     Provides a wrapper for the printer SDK functionality.
 ///     This class handles communication with thermal printers through the native SDK.
 /// </summary>
-public class Printer : IPrinter
+public class Printer(int maxLineCharacter) : IPrinter
 {
     private IntPtr _intPtr = IntPtr.Zero;
 
@@ -67,7 +67,7 @@ public class Printer : IPrinter
     ///     Feeds the specified number of lines.
     /// </summary>
     /// <param name="lines">The number of lines to feed.</param>
-    public void FeedLine(int lines)
+    public void FeedLine(int lines = 1)
     {
         // use PrintText to ensure proper line spacing with different printers
         Sdk.PrintText(_intPtr, new string('\n', lines), 0, 0);
@@ -79,7 +79,7 @@ public class Printer : IPrinter
     /// <param name="pinMode">The pin mode for the cash drawer operation.</param>
     /// <param name="onTime">The on time duration for the cash drawer operation.</param>
     /// <param name="ofTime">The off time duration for the cash drawer operation.</param>
-    public void OpenCashDrawer(int pinMode, int onTime, int ofTime)
+    public void OpenCashDrawer(int pinMode = 0, int onTime = 30, int ofTime = 255)
     {
         Sdk.OpenCashDrawer(_intPtr, pinMode, onTime, ofTime);
     }
@@ -91,9 +91,41 @@ public class Printer : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
     /// <param name="textSize">The text size to use for printing.</param>
-    public void PrintText(string data, bool textWrap, int alignment, int textSize)
+    public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        Sdk.PrintText(_intPtr, data, alignment, textSize);
+        if (textWrap == TextWrap.None)
+        {
+            var trimmed = data.Length > maxLineCharacter
+                ? data[..maxLineCharacter]
+                : data;
+
+            Sdk.PrintText(_intPtr, trimmed, 0, (int)textSize);
+            return;
+        }
+
+        var lines = data.SplitIntoLines(maxLineCharacter);
+
+        if (lines.Count == 1)
+        {
+            Sdk.PrintText(_intPtr, lines[0], 0, (int)textSize);
+            return;
+        }
+
+        var counter = 0;
+        foreach (var line in lines)
+        {
+            var formattedLine = alignment switch
+            {
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
+                _ => line
+            };
+
+            Sdk.PrintText(_intPtr, counter < lines.Count - 1 ? $"{formattedLine}\n" : formattedLine, 0, (int)textSize); // Last line without newline
+            counter++;
+        }
     }
 
     /// <summary>
@@ -103,23 +135,52 @@ public class Printer : IPrinter
     /// <param name="textWrap">Indicates whether text wrapping is enabled.</param>
     /// <param name="alignment">The text alignment (e.g., left, center, right).</param>
     /// <param name="textSize">The text size to use for printing.</param>
-    public void PrintTextLine(string data, bool textWrap, int alignment, int textSize)
+    public void PrintTextLine(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        Sdk.PrintText(_intPtr, $"{data}\n", alignment, textSize);
+        if (textWrap == TextWrap.None)
+        {
+            var trimmed = data.Length > maxLineCharacter
+                ? data[..maxLineCharacter]
+                : data;
+
+            var line = alignment switch
+            {
+                HorizontalAlignment.Left => trimmed, // Left alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
+                _ => trimmed
+            };
+            Sdk.PrintText(_intPtr, $"{line}\n", 0, (int)textSize);
+            return;
+        }
+
+        var lines = data.SplitIntoLines(maxLineCharacter);
+
+        foreach (var line in lines)
+        {
+            var formattedLine = alignment switch
+            {
+                HorizontalAlignment.Left => line, // Left alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
+                _ => line
+            };
+
+            Sdk.PrintText(_intPtr, $"{formattedLine}\n", 0, (int)textSize);
+        }
     }
 
     /// <summary>
     ///     Prints a barcode with the specified parameters.
     /// </summary>
-    /// <param name="type">The barcode type.</param>
     /// <param name="data">The barcode data.</param>
     /// <param name="width">The barcode width.</param>
     /// <param name="height">The barcode height.</param>
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The barcode position.</param>
-    public void PrintBarCode(int type, string data, int width, int height, int alignment, int position)
+    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
     {
-        Sdk.PrintBarCode(_intPtr, type, data, width, height, alignment, position);
+        Sdk.PrintBarCode(_intPtr, 73, data, (int)width, height, (int)alignment, (int)position);
     }
 
     /// <summary>
@@ -128,9 +189,9 @@ public class Printer : IPrinter
     /// <param name="filePath">The file path of the image.</param>
     /// <param name="filename">The filename to display (not used in native implementation).</param>
     /// <param name="scaleMode">The scale mode for the image.</param>
-    public void PrintImage(string filePath, string filename, int scaleMode)
+    public void PrintImage(string filePath, string filename, ScaleMode scaleMode)
     {
-        Sdk.PrintImage(_intPtr, filePath, scaleMode);
+        Sdk.PrintImage(_intPtr, filePath, (int)scaleMode);
     }
 
     private static class Sdk

@@ -12,9 +12,9 @@ namespace Sharprinter;
 ///     and then executing them as a single batch operation.
 /// </summary>
 /// <remarks>
-///     The <see cref="PrinterContext"/> class provides a fluent API for building print jobs.
+///     The <see cref="PrinterContext" /> class provides a fluent API for building print jobs.
 ///     Each method returns the context instance, allowing for method chaining.
-///     Print operations are queued and executed when <see cref="ExecuteAsync"/> is called.
+///     Print operations are queued and executed when <see cref="ExecuteAsync" /> is called.
 /// </remarks>
 public class PrinterContext
 {
@@ -27,11 +27,11 @@ public class PrinterContext
     ///     Initializes a new instance of the <see cref="PrinterContext" /> class with the specified options.
     /// </summary>
     /// <param name="options">The printer configuration options including port settings, baud rate, and behavior flags.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options" /> is null.</exception>
     public PrinterContext(PrinterOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        Printer = new Printer();
+        Printer = new Printer(_options.MaxLineCharacter);
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public class PrinterContext
     /// </summary>
     /// <param name="printer">The printer implementation to use for print operations.</param>
     /// <param name="options">The printer configuration options including port settings, baud rate, and behavior flags.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="printer"/> or <paramref name="options"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="printer" /> or <paramref name="options" /> is null.</exception>
     public PrinterContext(IPrinter printer, PrinterOptions options)
     {
         Printer = printer ?? throw new ArgumentNullException(nameof(printer));
@@ -51,18 +51,25 @@ public class PrinterContext
     /// </summary>
     /// <param name="text">The text content to be printed.</param>
     /// <param name="textWrap">Whether to wrap the text to the next line if it exceeds the paper width.</param>
-    /// <param name="horizontalAlignment">The horizontal alignment of the text on the paper. Default is <see cref="HorizontalAlignment.Left" />.</param>
+    /// <param name="horizontalAlignment">
+    ///     The horizontal alignment of the text on the paper. Default is
+    ///     <see cref="HorizontalAlignment.Left" />.
+    /// </param>
     /// <param name="textSize">The size of the text. Use 0 for default size.</param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="text"/> is null or empty.</exception>
-    public PrinterContext Text(string text, bool textWrap, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, int textSize = 0)
+    /// <exception cref="ArgumentException">Thrown when <paramref name="text" /> is null or empty.</exception>
+    public PrinterContext Text(string text, TextWrap textWrap = TextWrap.None,
+        HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
+        TextSize textSize = TextSize.Normal)
     {
         if (string.IsNullOrEmpty(text))
+        {
             throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+        }
 
-        _actions.Add(() => Printer.PrintText(text, textWrap, (int)horizontalAlignment, textSize));
+        _actions.Add(() => Printer.PrintText(text, textWrap, horizontalAlignment, textSize));
         return this;
     }
 
@@ -71,22 +78,25 @@ public class PrinterContext
     /// </summary>
     /// <param name="text">The text content to be printed.</param>
     /// <param name="textWrap">Whether to wrap the text to the next line if it exceeds the paper width.</param>
-    /// <param name="horizontalAlignment">The horizontal alignment of the text on the paper. Default is <see cref="HorizontalAlignment.Left" />.</param>
+    /// <param name="alignment">
+    ///     The horizontal alignment of the text on the paper. Default is
+    ///     <see cref="HorizontalAlignment.Left" />.
+    /// </param>
     /// <param name="textSize">The size of the text. Use 0 for default size.</param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="text"/> is null or empty.</exception>
-    public PrinterContext TextLine(string text, bool textWrap, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
-        int textSize = 0)
+    /// <exception cref="ArgumentException">Thrown when <paramref name="text" /> is null or empty.</exception>
+    public PrinterContext TextLine(string text, TextWrap textWrap = TextWrap.None,
+        HorizontalAlignment alignment = HorizontalAlignment.Left,
+        TextSize textSize = TextSize.Normal)
     {
         if (string.IsNullOrEmpty(text))
-            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
-
-        _actions.Add(() =>
         {
-            Printer.PrintTextLine($"{text}", textWrap, (int)horizontalAlignment, textSize);
-        });
+            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+        }
+
+        _actions.Add(() => { Printer.PrintTextLine($"{text}", textWrap, alignment, textSize); });
         return this;
     }
 
@@ -98,12 +108,13 @@ public class PrinterContext
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
     /// <remarks>
-    ///     The separator line will span the full width of the paper as defined by <see cref="PrinterOptions.MaxLineCharacter"/>.
+    ///     The separator line will span the full width of the paper as defined by
+    ///     <see cref="PrinterOptions.MaxLineCharacter" />.
     /// </remarks>
     public PrinterContext TextSeparator(char character = '─')
     {
         var separator = new string(character, _options.MaxLineCharacter);
-        return TextLine(separator, false);
+        return TextLine(separator);
     }
 
     /// <summary>
@@ -113,7 +124,7 @@ public class PrinterContext
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="lines"/> is less than 1.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="lines" /> is less than 1.</exception>
     public PrinterContext FeedLine(int lines = 1)
     {
         if (lines < 1)
@@ -148,14 +159,16 @@ public class PrinterContext
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="path"/> is null, empty, or invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="path" /> is null, empty, or invalid.</exception>
     /// <exception cref="System.IO.FileNotFoundException">Thrown when the image file does not exist.</exception>
     public PrinterContext Image(string path, string filename = "")
     {
         if (string.IsNullOrEmpty(path))
+        {
             throw new ArgumentException("Image path cannot be null or empty.", nameof(path));
+        }
 
-        _actions.Add(() => { Printer.PrintImage(path, filename, 0); });
+        _actions.Add(() => { Printer.PrintImage(path, filename, ScaleMode.Normal); });
         return this;
     }
 
@@ -163,20 +176,22 @@ public class PrinterContext
     ///     Adds an action to print a barcode.
     /// </summary>
     /// <param name="barcode">The barcode data to be printed.</param>
-    /// <param name="horizontalAlignment">The horizontal alignment of the barcode on the paper. Default is <see cref="HorizontalAlignment.Left" />.</param>
+    /// <param name="width">The width of the barcode</param>
+    /// <param name="height">The height of the barcode</param>
+    /// <param name="alignment">The horizontal alignment of the barcode on the paper. Default is <see cref="HorizontalAlignment.Left" />.</param>
+    /// <param name="position"> The HRI (Human Readable Interpretation) position. Default is <see cref="HRIPosition.Below" />.</param>
     /// <returns>
     ///     The current <see cref="PrinterContext" /> instance for method chaining.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="barcode"/> is null or empty.</exception>
-    /// <remarks>
-    ///     The barcode will be printed using Code 128 format with default height and width settings.
-    /// </remarks>
-    public PrinterContext BarCode(string barcode, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left)
+    /// <exception cref="ArgumentException">Thrown when <paramref name="barcode" /> is null or empty.</exception>
+    public PrinterContext BarCode(string barcode, int height,BarcodeWidth width = BarcodeWidth.Large,  HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.Below)
     {
         if (string.IsNullOrEmpty(barcode))
+        {
             throw new ArgumentException("Barcode data cannot be null or empty.", nameof(barcode));
+        }
 
-        _actions.Add(() => Printer.PrintBarCode(73, barcode, 3, 100, (int)horizontalAlignment, 2));
+        _actions.Add(() => Printer.PrintBarCode(barcode, height, width, alignment, position));
         return this;
     }
 
@@ -199,7 +214,7 @@ public class PrinterContext
         {
             Printer.Initialize();
             Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
-            Printer.OpenCashDrawer(0, 30, 255);
+            Printer.OpenCashDrawer();
             Printer.ClosePort();
         }, cancellationToken);
     }
@@ -218,7 +233,7 @@ public class PrinterContext
             foreach (var action in _actions.TakeWhile(_ => !cancellationToken.IsCancellationRequested)) action();
 
             if (_options.CutPaper) Printer.CutPaperWithDistance(66);
-            if (_options.OpenDrawer) Printer.OpenCashDrawer(0, 30, 255);
+            if (_options.OpenDrawer) Printer.OpenCashDrawer();
 
             Printer.ClosePort();
         }, cancellationToken);
@@ -228,7 +243,7 @@ public class PrinterContext
     ///     Adds table actions to the printer context for execution.
     /// </summary>
     /// <param name="actions">The list of table actions to add to the print queue.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="actions"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="actions" /> is null.</exception>
     internal void AddTableActions(List<Action> actions)
     {
         _actions.AddRange(actions ?? throw new ArgumentNullException(nameof(actions)));

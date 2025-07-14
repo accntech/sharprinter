@@ -24,7 +24,7 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
             {
                 var groupedLines = lines.Select(x => x.Lines.ElementAtOrDefault(index) ?? string.Empty).ToArray();
                 var lineString = string.Join("", groupedLines);
-                context.Printer.PrintTextLine(lineString, false, 0, 0);
+                context.Printer.PrintTextLine(lineString);
                 index++;
             }
         });
@@ -59,7 +59,7 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
     public ITable AddRowSeparator()
     {
         _printActions.Add(() =>
-            context.Printer.PrintTextLine(new string(Border.HorizontalLine, maxCharCount), false, 0, 0));
+            context.Printer.PrintTextLine(new string(Border.HorizontalLine, maxCharCount)));
         return this;
     }
 
