@@ -6,7 +6,7 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <Platforms>AnyCPU;x86;x64</Platforms>
-       <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <Version>0.0.1</Version>
     </PropertyGroup>
 
@@ -32,7 +32,7 @@
         <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="runtimes\win-x64\native\">
             <Link>printer.sdk.dll</Link>
         </None>
-        
+
         <None Include="printer.sdk.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="runtimes\win-x86\native\">
             <Link>printer.sdk.dll</Link>
         </None>

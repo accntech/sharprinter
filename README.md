@@ -158,7 +158,7 @@ The main class for building print operations using a fluent interface.
 #### Core Methods
 
 | Method                                       | Description                         |
-| -------------------------------------------- | ----------------------------------- |
+|----------------------------------------------|-------------------------------------|
 | `AddText(string, Action<TextOptions>)`       | Add text with configuration options |
 | `AddText(string)`                            | Add simple text                     |
 | `AddSeparator(char)`                         | Add a separator line                |
@@ -202,11 +202,11 @@ Configuration class for printer settings.
 ```csharp
 public class PrinterOptions
 {
-    public int MaxLineCharacter { get; set; }    // Characters per line
-    public string PortName { get; set; }         // COM port (e.g., "COM1")
-    public int BaudRate { get; set; } = 9600;    // Communication speed
-    public bool OpenDrawer { get; set; }         // Open cash drawer after printing
-    public bool CutPaper { get; set; }           // Cut paper after printing
+    public int MaxLineCharacter { get; init; }    // Characters per line
+    public string PortName { get; init; }         // COM port (e.g., "COM1")
+    public int BaudRate { get; init; } = 9600;    // Communication speed
+    public bool OpenDrawer { get; init; }         // Open cash drawer after printing
+    public bool CutPaper { get; init; }           // Cut paper after printing
 }
 ```
 
