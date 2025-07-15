@@ -16,8 +16,12 @@ namespace Sharprinter;
 /// </remarks>
 public sealed class PrinterContext
 {
+    /// <summary>
+    ///     Gets the printer configuration options including port settings, baud rate, and behavior flags.
+    /// </summary>
+    public PrinterOptions Options { get; }
+
     internal IPrinter Printer { get; }
-    private readonly PrinterOptions _options;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="PrinterContext" /> class with the specified options.
@@ -26,8 +30,8 @@ public sealed class PrinterContext
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="options" /> is null.</exception>
     public PrinterContext(PrinterOptions options)
     {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        Printer = new Printer(_options.MaxLineCharacter);
+        Options = options ?? throw new ArgumentNullException(nameof(options));
+        Printer = new Printer(Options.MaxLineCharacter);
     }
 
     /// <summary>
@@ -39,7 +43,7 @@ public sealed class PrinterContext
     public PrinterContext(IPrinter printer, PrinterOptions options)
     {
         Printer = printer ?? throw new ArgumentNullException(nameof(printer));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        Options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     /// <summary>
@@ -73,10 +77,11 @@ public sealed class PrinterContext
     {
         if (character is '\n' or '\r')
         {
-            throw new ArgumentException("Separator character cannot be a newline or carriage return.", nameof(character));
+            throw new ArgumentException("Separator character cannot be a newline or carriage return.",
+                nameof(character));
         }
 
-        var separator = new string(character, _options.MaxLineCharacter);
+        var separator = new string(character, Options.MaxLineCharacter);
         Printer.PrintText(separator);
         return this;
     }
@@ -112,7 +117,7 @@ public sealed class PrinterContext
     /// </remarks>
     public PrinterContext AddTable(Action<ITable> expression)
     {
-        var table = new Table(this, _options.MaxLineCharacter);
+        var table = new Table(this, Options.MaxLineCharacter);
         expression.Invoke(table);
         return this;
     }
@@ -173,7 +178,7 @@ public sealed class PrinterContext
         return Task.Factory.StartNew(() =>
         {
             Printer.Initialize();
-            Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
+            Printer.OpenPort($"{Options.PortName}, {Options.BaudRate}");
             Printer.OpenCashDrawer();
             Printer.ClosePort();
         }, cancellationToken);
@@ -188,12 +193,12 @@ public sealed class PrinterContext
         return Task.Factory.StartNew(() =>
         {
             Printer.Initialize();
-            Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
+            Printer.OpenPort($"{Options.PortName}, {Options.BaudRate}");
 
             Printer.Print(token);
 
-            if (_options.CutPaper) Printer.CutPaperWithDistance(66);
-            if (_options.OpenDrawer) Printer.OpenCashDrawer();
+            if (Options.CutPaper) Printer.CutPaperWithDistance(66);
+            if (Options.OpenDrawer) Printer.OpenCashDrawer();
 
             Printer.Release();
             Printer.ClosePort();
