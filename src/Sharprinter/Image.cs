@@ -39,7 +39,7 @@ internal sealed class Image(PrinterContext context, string path) : IImage
 
     internal PrinterContext Add()
     {
-        context.AddAction(() => context.Printer.PrintImage(path, _filename, _scaleMode));
+        context.Printer.PrintImage(path, _filename, _scaleMode);
         return context;
     }
 }

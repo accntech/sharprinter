@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,7 @@ namespace Sharprinter;
 /// </summary>
 /// <param name="writer">The <see cref="StreamWriter" /> used to write output to the file.</param>
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
-public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPrinter
+public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : PrinterBase, IPrinter
 {
     /// <summary>
     ///     Initializes the file printer and writes a header message to the file.
@@ -32,8 +31,6 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     {
         writer.WriteLine("Printer released successfully.");
         writer.WriteLine();
-        writer.Close();
-        writer.Dispose();
     }
 
     /// <summary>
@@ -44,9 +41,6 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     {
         writer.WriteLine("File port opened.");
         writer.WriteLine();
-
-        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
-        writer.WriteLine($"{Border.TopLeft}{line}{Border.TopRight}");
     }
 
     /// <summary>
@@ -60,18 +54,17 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     }
 
     /// <summary>
-    ///     Executes a collection of print actions.
+    ///     Executes all print actions from the queue.
     /// </summary>
-    /// <param name="actions">The collection of actions to execute for printing.</param>
     /// <param name="token">A cancellation token to observe while executing the actions.</param>
-    public void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
+    public void Print(CancellationToken token)
     {
-        if (actions.Count == 0) return;
+        if (PrintActions.Count == 0) return;
 
         var top = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         writer.WriteLine($"{Border.TopLeft}{top}{Border.TopRight}");
 
-        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
+        foreach (var action in PrintActions.TakeWhile(_ => !token.IsCancellationRequested)) action();
 
         var bottom = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         writer.WriteLine($"{Border.BottomLeft}{bottom}{Border.BottomRight}");
@@ -104,12 +97,15 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// <param name="lines">The number of lines to feed.</param>
     public void FeedLine(int lines = 1)
     {
-        var line = 0;
-        while (line < lines)
+        AddToPrintQueue(() =>
         {
-            writer.WriteLine(ReceiptText(string.Empty, maxLineCharacter));
-            line++;
-        }
+            var line = 0;
+            while (line < lines)
+            {
+                writer.WriteLine(ReceiptText(string.Empty, maxLineCharacter));
+                line++;
+            }
+        });
     }
 
     /// <summary>
@@ -143,39 +139,42 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// <param name="textSize">The text size (not used in file implementation).</param>
     public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (textWrap == TextWrap.None)
+        AddToPrintQueue(() =>
         {
-            var trimmed = data.Length > maxLineCharacter
-                ? data[..maxLineCharacter]
-                : data;
-
-            var line = alignment switch
+            if (textWrap == TextWrap.None)
             {
-                HorizontalAlignment.Left => trimmed, // Left alignment
-                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
-                _ => trimmed
-            };
-            writer.WriteLine(ReceiptText(line, maxLineCharacter));
-            return;
-        }
+                var trimmed = data.Length > maxLineCharacter
+                    ? data[..maxLineCharacter]
+                    : data;
 
-        var lines = data.SplitIntoLines(maxLineCharacter);
+                var line = alignment switch
+                {
+                    HorizontalAlignment.Left => trimmed, // Left alignment
+                    HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                        .PadRight(maxLineCharacter), // Center alignment
+                    HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
+                    _ => trimmed
+                };
+                writer.WriteLine(ReceiptText(line, maxLineCharacter));
+                return;
+            }
 
-        foreach (var line in lines)
-        {
-            var formattedLine = alignment switch
+            var lines = data.SplitIntoLines(maxLineCharacter);
+
+            foreach (var line in lines)
             {
-                HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
-                _ => line
-            };
+                var formattedLine = alignment switch
+                {
+                    HorizontalAlignment.Left => line, // Left alignment
+                    HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                        .PadRight(maxLineCharacter), // Center alignment
+                    HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
+                    _ => line
+                };
 
-            writer.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
-        }
+                writer.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
+            }
+        });
     }
 
     /// <summary>
@@ -187,38 +186,41 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The HRI position (not used in file implementation).</param>
     public void PrintBarCode(
-        string data, 
-        int height, 
+        string data,
+        int height,
         BarcodeWidth width = BarcodeWidth.Large,
-        HorizontalAlignment alignment = HorizontalAlignment.Left, 
+        HorizontalAlignment alignment = HorizontalAlignment.Left,
         HRIPosition position = HRIPosition.None)
     {
-        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
-        writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
-
-        var maxChar = maxLineCharacter - 8;
-        var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
-        var barcode = GenerateDummyBarcode(remainingData);
-
-        var formatted = alignment switch
+        AddToPrintQueue(() =>
         {
-            HorizontalAlignment.Left => barcode, // Left alignment
-            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
-                .PadRight(maxChar), // Center alignment
-            HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
-            _ => barcode
-        };
+            var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+            writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
-        var croppedBarcode = formatted.Length > maxLineCharacter
-            ? formatted[..maxLineCharacter]
-            : formatted;
-        writer.WriteLine(ReceiptText(croppedBarcode, maxLineCharacter));
+            var maxChar = maxLineCharacter - 8;
+            var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
+            var barcode = GenerateDummyBarcode(remainingData);
 
-        var label = data.Length >= maxLineCharacter ? data[..maxLineCharacter] : data;
-        var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
-        writer.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
+            var formatted = alignment switch
+            {
+                HorizontalAlignment.Left => barcode, // Left alignment
+                HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
+                    .PadRight(maxChar), // Center alignment
+                HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
+                _ => barcode
+            };
 
-        writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+            var croppedBarcode = formatted.Length > maxLineCharacter
+                ? formatted[..maxLineCharacter]
+                : formatted;
+            writer.WriteLine(ReceiptText(croppedBarcode, maxLineCharacter));
+
+            var label = data.Length >= maxLineCharacter ? data[..maxLineCharacter] : data;
+            var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
+            writer.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
+
+            writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+        });
     }
 
     private static string GenerateDummyBarcode(string input)
@@ -246,17 +248,20 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// <param name="scaleMode">The scaling mode (not used in file implementation).</param>
     public void PrintImage(string filePath, string filename, ScaleMode scaleMode)
     {
-        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
-        writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
-
-        var width = maxLineCharacter - 8;
-        var lines = filename.SplitIntoLines(width);
-        foreach (var line in lines)
+        AddToPrintQueue(() =>
         {
-            var formatted = line.PadLeft((width + line.Length) / 2).PadRight(width);
-            writer.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
-        }
+            var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+            writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
-        writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+            var width = maxLineCharacter - 8;
+            var lines = filename.SplitIntoLines(width);
+            foreach (var line in lines)
+            {
+                var formatted = line.PadLeft((width + line.Length) / 2).PadRight(width);
+                writer.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
+            }
+
+            writer.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+        });
     }
 }

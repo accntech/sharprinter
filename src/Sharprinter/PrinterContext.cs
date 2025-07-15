@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,8 +17,6 @@ namespace Sharprinter;
 public sealed class PrinterContext
 {
     internal IPrinter Printer { get; }
-
-    private readonly List<Action> _actions = [];
     private readonly PrinterOptions _options;
 
     /// <summary>
@@ -76,7 +72,7 @@ public sealed class PrinterContext
     public PrinterContext AddSeparator(char character = '─')
     {
         var separator = new string(character, _options.MaxLineCharacter);
-        _actions.Add(() => { Printer.PrintText(separator); });
+        Printer.PrintText(separator);
         return this;
     }
 
@@ -95,7 +91,7 @@ public sealed class PrinterContext
             throw new ArgumentOutOfRangeException(nameof(lines), "Number of lines must be at least 1.");
         }
 
-        _actions.Add(() => Printer.FeedLine(lines));
+        Printer.FeedLine(lines);
         return this;
     }
 
@@ -181,26 +177,21 @@ public sealed class PrinterContext
     /// <summary>
     ///     Executes all queued print operations asynchronously.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    public Task ExecuteAsync(CancellationToken cancellationToken = default)
+    /// <param name="token">A token to monitor for cancellation requests.</param>
+    public Task ExecuteAsync(CancellationToken token = default)
     {
         return Task.Factory.StartNew(() =>
         {
             Printer.Initialize();
             Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
 
-            Printer.ExecutePrintActions(_actions, cancellationToken);
+            Printer.Print(token);
 
             if (_options.CutPaper) Printer.CutPaperWithDistance(66);
             if (_options.OpenDrawer) Printer.OpenCashDrawer();
 
             Printer.Release();
             Printer.ClosePort();
-        }, cancellationToken);
-    }
-
-    internal void AddAction(Action action)
-    {
-        _actions.Add(action);
+        }, token);
     }
 }

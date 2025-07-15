@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,7 +11,7 @@ namespace Sharprinter;
 ///     by outputting formatted text to the console with visual borders and formatting.
 /// </summary>
 /// <param name="maxLineCharacter">The maximum number of characters per line for the receipt output.</param>
-public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
+public sealed class ConsolePrinter(int maxLineCharacter) : PrinterBase, IPrinter
 {
     /// <summary>
     ///     Initializes the console printer and sets up UTF-8 encoding for proper character display.
@@ -53,29 +52,17 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     }
 
     /// <summary>
-    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
-    ///     This should be called after all print actions to complete the printing process.
-    /// </summary>
-    public void FinalizePrint()
-    {
-        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
-        Console.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
-        Console.WriteLine();
-    }
-
-    /// <summary>
     ///     Executes a collection of print actions.
     /// </summary>
-    /// <param name="actions">The collection of actions to execute for printing.</param>
     /// <param name="token">A cancellation token to observe while executing the actions.</param>
-    public void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
+    public void Print(CancellationToken token)
     {
-        if (actions.Count == 0) return;
+        if (PrintActions.Count == 0) return;
 
         var top = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         Console.WriteLine($"{Border.TopLeft}{top}{Border.TopRight}");
 
-        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
+        foreach (var action in PrintActions.TakeWhile(_ => !token.IsCancellationRequested)) action();
 
         var bottom = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         Console.WriteLine($"{Border.BottomLeft}{bottom}{Border.BottomRight}");
@@ -108,12 +95,15 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="lines">The number of lines to feed.</param>
     public void FeedLine(int lines = 1)
     {
-        var line = 0;
-        while (line < lines)
+        AddToPrintQueue(() =>
         {
-            Console.WriteLine(ReceiptText(string.Empty, maxLineCharacter));
-            line++;
-        }
+            var line = 0;
+            while (line < lines)
+            {
+                Console.WriteLine(ReceiptText(string.Empty, maxLineCharacter));
+                line++;
+            }
+        });
     }
 
     /// <summary>
@@ -147,39 +137,42 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="textSize">The text size (not used in console implementation).</param>
     public void PrintText(string data, TextWrap textWrap, HorizontalAlignment alignment, TextSize textSize)
     {
-        if (textWrap == TextWrap.None)
+        AddToPrintQueue(() =>
         {
-            var trimmed = data.Length > maxLineCharacter
-                ? data[..maxLineCharacter]
-                : data;
-
-            var line = alignment switch
+            if (textWrap == TextWrap.None)
             {
-                HorizontalAlignment.Left => trimmed, // Left alignment
-                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
-                _ => trimmed
-            };
-            Console.WriteLine(ReceiptText(line, maxLineCharacter));
-            return;
-        }
+                var trimmed = data.Length > maxLineCharacter
+                    ? data[..maxLineCharacter]
+                    : data;
 
-        var lines = data.SplitIntoLines(maxLineCharacter);
+                var line = alignment switch
+                {
+                    HorizontalAlignment.Left => trimmed, // Left alignment
+                    HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                        .PadRight(maxLineCharacter), // Center alignment
+                    HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
+                    _ => trimmed
+                };
+                Console.WriteLine(ReceiptText(line, maxLineCharacter));
+                return;
+            }
 
-        foreach (var line in lines)
-        {
-            var formattedLine = alignment switch
+            var lines = data.SplitIntoLines(maxLineCharacter);
+
+            foreach (var line in lines)
             {
-                HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
-                    .PadRight(maxLineCharacter), // Center alignment
-                HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
-                _ => line
-            };
+                var formattedLine = alignment switch
+                {
+                    HorizontalAlignment.Left => line, // Left alignment
+                    HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                        .PadRight(maxLineCharacter), // Center alignment
+                    HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
+                    _ => line
+                };
 
-            Console.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
-        }
+                Console.WriteLine(ReceiptText(formattedLine, maxLineCharacter));
+            }
+        });
     }
 
     /// <summary>
@@ -198,32 +191,35 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
         HorizontalAlignment alignment = HorizontalAlignment.Left,
         HRIPosition position = HRIPosition.None)
     {
-        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
-        Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
-
-        var maxChar = maxLineCharacter - 8;
-        var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
-        var barcode = GenerateDummyBarcode(remainingData);
-
-        var formatted = alignment switch
+        AddToPrintQueue(() =>
         {
-            HorizontalAlignment.Left => barcode, // Left alignment
-            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
-                .PadRight(maxChar), // Center alignment
-            HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
-            _ => barcode
-        };
+            var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+            Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
-        var croppedBarcode = formatted.Length > maxLineCharacter
-            ? formatted[..maxLineCharacter]
-            : formatted;
-        Console.WriteLine(ReceiptText(croppedBarcode, maxLineCharacter));
+            var maxChar = maxLineCharacter - 8;
+            var remainingData = data.Length >= maxChar ? data[..maxChar] : data;
+            var barcode = GenerateDummyBarcode(remainingData);
 
-        var label = data.Length >= maxLineCharacter ? data[..maxLineCharacter] : data;
-        var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
-        Console.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
+            var formatted = alignment switch
+            {
+                HorizontalAlignment.Left => barcode, // Left alignment
+                HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
+                    .PadRight(maxChar), // Center alignment
+                HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
+                _ => barcode
+            };
 
-        Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+            var croppedBarcode = formatted.Length > maxLineCharacter
+                ? formatted[..maxLineCharacter]
+                : formatted;
+            Console.WriteLine(ReceiptText(croppedBarcode, maxLineCharacter));
+
+            var label = data.Length >= maxLineCharacter ? data[..maxLineCharacter] : data;
+            var centeredLabel = label.PadLeft((maxChar + label.Length) / 2).PadRight(maxChar);
+            Console.WriteLine(ReceiptText(ReceiptText(centeredLabel, maxChar), maxLineCharacter));
+
+            Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+        });
     }
 
     private static string GenerateDummyBarcode(string input)
@@ -251,17 +247,20 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="scaleMode">The scale mode for the image (not used in console implementation).</param>
     public void PrintImage(string filePath, string filename, ScaleMode scaleMode)
     {
-        var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
-        Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
-
-        var width = maxLineCharacter - 8;
-        var lines = filename.SplitIntoLines(width);
-        foreach (var line in lines)
+        AddToPrintQueue(() =>
         {
-            var formatted = line.PadLeft((width + line.Length) / 2).PadRight(width);
-            Console.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
-        }
+            var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
+            Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
 
-        Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+            var width = maxLineCharacter - 8;
+            var lines = filename.SplitIntoLines(width);
+            foreach (var line in lines)
+            {
+                var formatted = line.PadLeft((width + line.Length) / 2).PadRight(width);
+                Console.WriteLine(ReceiptText(ReceiptText(formatted, width), maxLineCharacter));
+            }
+
+            Console.WriteLine(ReceiptText($"{Border.BottomLeft}{lineChar}{Border.BottomRight}", maxLineCharacter));
+        });
     }
 }

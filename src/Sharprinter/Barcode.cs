@@ -67,7 +67,7 @@ internal sealed class Barcode(PrinterContext context, string barcode) : IBarcode
 
     internal PrinterContext Add()
     {
-        context.AddAction(() => context.Printer.PrintBarCode(barcode, _height, _width, _alignment, _position));
+        context.Printer.PrintBarCode(barcode, _height, _width, _alignment, _position);
         return context;
     }
 }

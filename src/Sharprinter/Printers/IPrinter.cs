@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 // ReSharper disable once CheckNamespace
@@ -35,14 +32,10 @@ public interface IPrinter
     void ClosePort();
 
     /// <summary>
-    ///     Executes a collection of print actions.
+    ///     Executes all print actions from the queue.
     /// </summary>
-    /// <param name="actions">The collection of actions to execute for printing.</param>
     /// <param name="token">A cancellation token to observe while executing the actions.</param>
-    void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
-    {
-        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
-    }
+    void Print(CancellationToken token);
 
     /// <summary>
     ///     Cuts the paper using the specified cut mode.

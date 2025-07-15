@@ -39,20 +39,20 @@ internal sealed class Table(PrinterContext context, int maxCharCount) : ITable
         expression.Invoke(row);
 
         var items = row.GetLineItems();
-        foreach (var item in items) context.AddAction(() => context.Printer.PrintText(item));
+        foreach (var item in items) context.Printer.PrintText(item);
 
         return this;
     }
 
     public ITable FeedLine(int rows = 1)
     {
-        context.AddAction(() => context.Printer.FeedLine(rows));
+        context.Printer.FeedLine(rows);
         return this;
     }
 
     public ITable AddSeparator()
     {
-        context.AddAction(() => context.Printer.PrintText(new string(Border.HorizontalLine, maxCharCount)));
+        context.Printer.PrintText(new string(Border.HorizontalLine, maxCharCount));
         return this;
     }
 }
