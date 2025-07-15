@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 
 // ReSharper disable once CheckNamespace
 namespace Sharprinter;
@@ -57,13 +60,21 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     }
 
     /// <summary>
-    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
-    ///     This should be called after all print actions to complete the printing process.
+    ///     Executes a collection of print actions.
     /// </summary>
-    public void FinalizePrint()
+    /// <param name="actions">The collection of actions to execute for printing.</param>
+    /// <param name="token">A cancellation token to observe while executing the actions.</param>
+    public void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
     {
-        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
-        writer.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
+        if (actions.Count == 0) return;
+
+        var top = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        writer.WriteLine($"{Border.TopLeft}{top}{Border.TopRight}");
+
+        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
+
+        var bottom = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        writer.WriteLine($"{Border.BottomLeft}{bottom}{Border.BottomRight}");
         writer.WriteLine();
     }
 

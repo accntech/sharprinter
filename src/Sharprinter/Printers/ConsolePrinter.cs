@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 
 // ReSharper disable once CheckNamespace
 namespace Sharprinter;
@@ -39,9 +42,6 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     {
         Console.WriteLine("Console port opened.");
         Console.WriteLine();
-
-        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
-        Console.WriteLine($"{Border.TopLeft}{line}{Border.TopRight}");
     }
 
     /// <summary>
@@ -60,6 +60,25 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     {
         var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         Console.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
+        Console.WriteLine();
+    }
+
+    /// <summary>
+    ///     Executes a collection of print actions.
+    /// </summary>
+    /// <param name="actions">The collection of actions to execute for printing.</param>
+    /// <param name="token">A cancellation token to observe while executing the actions.</param>
+    public void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
+    {
+        if (actions.Count == 0) return;
+
+        var top = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        Console.WriteLine($"{Border.TopLeft}{top}{Border.TopRight}");
+
+        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
+
+        var bottom = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        Console.WriteLine($"{Border.BottomLeft}{bottom}{Border.BottomRight}");
         Console.WriteLine();
     }
 
@@ -173,8 +192,8 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="position">The barcode position.</param>
     /// <exception cref="NotImplementedException">Thrown because barcode printing is not implemented in the console version.</exception>
     public void PrintBarCode(
-        string data, 
-        int height, 
+        string data,
+        int height,
         BarcodeWidth width = BarcodeWidth.Large,
         HorizontalAlignment alignment = HorizontalAlignment.Left,
         HRIPosition position = HRIPosition.None)

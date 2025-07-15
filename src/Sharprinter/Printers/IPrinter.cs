@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
 // ReSharper disable once CheckNamespace
 namespace Sharprinter;
 
@@ -30,11 +35,13 @@ public interface IPrinter
     void ClosePort();
 
     /// <summary>
-    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
-    ///     This should be called after all print actions to complete the printing process.
+    ///     Executes a collection of print actions.
     /// </summary>
-    void FinalizePrint()
+    /// <param name="actions">The collection of actions to execute for printing.</param>
+    /// <param name="token">A cancellation token to observe while executing the actions.</param>
+    void ExecutePrintActions(ICollection<Action> actions, CancellationToken token)
     {
+        foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested)) action();
     }
 
     /// <summary>
@@ -87,7 +94,8 @@ public interface IPrinter
     ///     The HRI (Human Readable Interpretation) position (0=Not printed, 1=Above, 2=Below, 3=Above and
     ///     Below).
     /// </param>
-    void PrintBarCode(string data, int height, BarcodeWidth width, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None);
+    void PrintBarCode(string data, int height, BarcodeWidth width,
+        HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None);
 
     /// <summary>
     ///     Prints an image from a file with specified scaling mode.
