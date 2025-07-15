@@ -46,13 +46,13 @@ internal sealed class RowItem : IRowItem
 
     public RowItem(string data, int maxLength)
     {
-        _data = data;
+        _data = data.Replace("\n", " ").Replace("\r", " "); //sanitize
         MaxLength = maxLength;
     }
 
     public RowItem(string data)
     {
-        _data = data;
+        _data = data.Replace("\n", " ").Replace("\r", " "); //sanitize
         MaxLength = null;
     }
 

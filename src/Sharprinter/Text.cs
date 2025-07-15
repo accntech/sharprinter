@@ -52,7 +52,13 @@ internal sealed class Text(PrinterContext context, string text) : IText
 
     internal PrinterContext Add()
     {
-        context.Printer.PrintText(text, _textWrap, _alignment, _textSize);
+        var lines = text.Split('\n');
+
+        foreach (var line in lines)
+        {
+            context.Printer.PrintText(line, _textWrap, _alignment, _textSize);
+        }
+
         return context;
     }
 }

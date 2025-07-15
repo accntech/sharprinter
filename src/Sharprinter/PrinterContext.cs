@@ -71,6 +71,11 @@ public sealed class PrinterContext
     /// </returns>
     public PrinterContext AddSeparator(char character = '─')
     {
+        if (character is '\n' or '\r')
+        {
+            throw new ArgumentException("Separator character cannot be a newline or carriage return.", nameof(character));
+        }
+
         var separator = new string(character, _options.MaxLineCharacter);
         Printer.PrintText(separator);
         return this;

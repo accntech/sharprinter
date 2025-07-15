@@ -6,8 +6,7 @@ public static class PrinterHelper
     {
         return context
             .AddImage(@".\Assets\image.jpg", x => x.Filename("7-ELEVEN Logo"))
-            .AddText("123 Main St. Springfield, USA", x => x.Alignment(HorizontalAlignment.Center))
-            .AddText("VATREG 123456789000", x => x.Alignment(HorizontalAlignment.Center))
+            .AddText("123 Main St. Springfield, USA\nVATREG 123456789000", x => x.Alignment(HorizontalAlignment.Center))
             .FeedLine()
             .AddText("INVOICE", x => x.Alignment(HorizontalAlignment.Center).TextSize(TextSize.DoubleHeight))
             .FeedLine()
