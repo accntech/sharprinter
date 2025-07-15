@@ -30,6 +30,14 @@ public interface IPrinter
     void ClosePort();
 
     /// <summary>
+    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
+    ///     This should be called after all print actions to complete the printing process.
+    /// </summary>
+    void FinalizePrint()
+    {
+    }
+
+    /// <summary>
     ///     Cuts the paper using the specified cut mode.
     /// </summary>
     /// <param name="cutMode">The cut mode to use for paper cutting (typically 0 for full cut, 1 for partial cut).</param>
@@ -57,7 +65,7 @@ public interface IPrinter
     /// <param name="ofTime">The duration in milliseconds to keep the pin inactive.</param>
     void OpenCashDrawer(int pinMode = 0, int onTime = 30, int ofTime = 255);
 
-   /// <summary>
+    /// <summary>
     ///     Prints text with line terminator, specified alignment and text size.
     ///     Note: The textWrap parameter is not used in the current implementation but is kept for interface compatibility.
     /// </summary>

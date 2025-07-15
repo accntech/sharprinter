@@ -49,10 +49,18 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// </summary>
     public void ClosePort()
     {
+        Console.WriteLine("Console port closed.");
+    }
+
+    /// <summary>
+    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
+    ///     This should be called after all print actions to complete the printing process.
+    /// </summary>
+    public void FinalizePrint()
+    {
         var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
         Console.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
         Console.WriteLine();
-        Console.WriteLine("Console port closed.");
     }
 
     /// <summary>
@@ -129,7 +137,8 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
             var line = alignment switch
             {
                 HorizontalAlignment.Left => trimmed, // Left alignment
-                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
                 HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
                 _ => trimmed
             };
@@ -144,7 +153,8 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
             var formattedLine = alignment switch
             {
                 HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
                 HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
@@ -162,7 +172,12 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The barcode position.</param>
     /// <exception cref="NotImplementedException">Thrown because barcode printing is not implemented in the console version.</exception>
-    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
+    public void PrintBarCode(
+        string data, 
+        int height, 
+        BarcodeWidth width = BarcodeWidth.Large,
+        HorizontalAlignment alignment = HorizontalAlignment.Left,
+        HRIPosition position = HRIPosition.None)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         Console.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));
@@ -174,7 +189,8 @@ public sealed class ConsolePrinter(int maxLineCharacter) : IPrinter
         var formatted = alignment switch
         {
             HorizontalAlignment.Left => barcode, // Left alignment
-            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2).PadRight(maxChar), // Center alignment
+            HorizontalAlignment.Center => barcode.PadLeft((maxChar + barcode.Length) / 2)
+                .PadRight(maxChar), // Center alignment
             HorizontalAlignment.Right => barcode.PadRight(maxChar), // Right alignment
             _ => barcode
         };

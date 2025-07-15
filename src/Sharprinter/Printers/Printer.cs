@@ -103,7 +103,8 @@ public sealed class Printer(int maxLineCharacter) : IPrinter
             var line = alignment switch
             {
                 HorizontalAlignment.Left => trimmed, // Left alignment
-                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Center => trimmed.PadLeft((maxLineCharacter + trimmed.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
                 HorizontalAlignment.Right => trimmed.PadRight(maxLineCharacter), // Right alignment
                 _ => trimmed
             };
@@ -118,7 +119,8 @@ public sealed class Printer(int maxLineCharacter) : IPrinter
             var formattedLine = alignment switch
             {
                 HorizontalAlignment.Left => line, // Left alignment
-                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2).PadRight(maxLineCharacter), // Center alignment
+                HorizontalAlignment.Center => line.PadLeft((maxLineCharacter + line.Length) / 2)
+                    .PadRight(maxLineCharacter), // Center alignment
                 HorizontalAlignment.Right => line.PadRight(maxLineCharacter), // Right alignment
                 _ => line
             };
@@ -135,7 +137,12 @@ public sealed class Printer(int maxLineCharacter) : IPrinter
     /// <param name="height">The barcode height.</param>
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The barcode position.</param>
-    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large, HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
+    public void PrintBarCode(
+        string data, 
+        int height,
+        BarcodeWidth width = BarcodeWidth.Large,
+        HorizontalAlignment alignment = HorizontalAlignment.Left, 
+        HRIPosition position = HRIPosition.None)
     {
         Sdk.PrintBarCode(_intPtr, 73, data, (int)width, height, (int)alignment, (int)position);
     }

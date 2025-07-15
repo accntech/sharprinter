@@ -51,12 +51,20 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// </summary>
     public void ClosePort()
     {
-        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
-        writer.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
-        writer.WriteLine();
         writer.WriteLine("File port closed.");
         writer.Close();
         writer.Dispose();
+    }
+
+    /// <summary>
+    ///     Finalizes the current print job before cutting, opening the cash drawer and releasing the resources.
+    ///     This should be called after all print actions to complete the printing process.
+    /// </summary>
+    public void FinalizePrint()
+    {
+        var line = new string(Border.HorizontalLine, maxLineCharacter + Border.Padding - 2);
+        writer.WriteLine($"{Border.BottomLeft}{line}{Border.BottomRight}");
+        writer.WriteLine();
     }
 
     /// <summary>
@@ -167,8 +175,12 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : IPr
     /// <param name="height">The barcode height (not used in file implementation).</param>
     /// <param name="alignment">The barcode alignment.</param>
     /// <param name="position">The HRI position (not used in file implementation).</param>
-    public void PrintBarCode(string data, int height, BarcodeWidth width = BarcodeWidth.Large,
-        HorizontalAlignment alignment = HorizontalAlignment.Left, HRIPosition position = HRIPosition.None)
+    public void PrintBarCode(
+        string data, 
+        int height, 
+        BarcodeWidth width = BarcodeWidth.Large,
+        HorizontalAlignment alignment = HorizontalAlignment.Left, 
+        HRIPosition position = HRIPosition.None)
     {
         var lineChar = new string(Border.HorizontalLine, maxLineCharacter - 2);
         writer.WriteLine(ReceiptText($"{Border.TopLeft}{lineChar}{Border.TopRight}", maxLineCharacter));

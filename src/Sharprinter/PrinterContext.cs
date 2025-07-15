@@ -190,10 +190,12 @@ public sealed class PrinterContext
             Printer.OpenPort($"{_options.PortName}, {_options.BaudRate}");
 
             foreach (var action in _actions.TakeWhile(_ => !cancellationToken.IsCancellationRequested)) action();
+            Printer.FinalizePrint();
 
             if (_options.CutPaper) Printer.CutPaperWithDistance(66);
             if (_options.OpenDrawer) Printer.OpenCashDrawer();
 
+            Printer.Release();
             Printer.ClosePort();
         }, cancellationToken);
     }
