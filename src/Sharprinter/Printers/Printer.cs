@@ -38,7 +38,6 @@ public sealed class Printer(int maxLineCharacter) : PrinterBase, IPrinter
     /// <param name="port">The port identifier to open.</param>
     public void OpenPort(string port)
     {
-        if (PrintActions.Count > 0) PrintActions.Clear();
         Sdk.OpenPort(_intPtr, port);
     }
 

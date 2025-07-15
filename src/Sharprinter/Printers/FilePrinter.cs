@@ -29,6 +29,7 @@ public sealed class FilePrinter(StreamWriter writer, int maxLineCharacter) : Pri
     /// </summary>
     public void Release()
     {
+        PrintActions.Clear();
         writer.WriteLine("Printer released successfully.");
         writer.WriteLine();
     }

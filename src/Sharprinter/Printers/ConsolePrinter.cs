@@ -29,6 +29,7 @@ public sealed class ConsolePrinter(int maxLineCharacter) : PrinterBase, IPrinter
     /// </summary>
     public void Release()
     {
+        PrintActions.Clear();
         Console.WriteLine("Printer released successfully.");
         Console.WriteLine();
     }
