@@ -6,7 +6,7 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <Platforms>AnyCPU;x86;x64</Platforms>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <Version>0.0.1</Version>
     </PropertyGroup>
 
